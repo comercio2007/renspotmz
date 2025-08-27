@@ -23,7 +23,6 @@ interface CreatePaymentResponse {
     transactionId?: string;
 }
 
-<<<<<<< HEAD
 export async function createDirectPayment(args: CreateDirectPaymentArgs): Promise<CreatePaymentResponse> {
     const { amount, context, user, payment } = args;
     const apiKey = process.env.NHONGA_API_KEY;
@@ -45,36 +44,16 @@ export async function createDirectPayment(args: CreateDirectPaymentArgs): Promis
             message: "Número de telefone inválido. Use um formato válido de Moçambique (ex: 841234567)."
         }
     }
-=======
-export async function createPayment(args: CreatePaymentArgs): Promise<CreatePaymentResponse> {
-    const { amount, context, userId } = args;
-    const apiKey = process.env.NHONGA_API_KEY;
-
-    if (!apiKey) {
-        throw new Error("A chave da API de pagamento não está configurada no servidor.");
-    }
-    
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://rentspotmz.site';
->>>>>>> fde9184 (elimine todas as pastas com API e inicie a integração da API do zero no)
 
     const payload = {
         method: payment.method,
         amount,
         context,
-<<<<<<< HEAD
         useremail: user.email || 'nao_fornecido@rentspotmz.site',
         userwhatsApp: cleanedPhone, // Assuming the payment phone is also the WhatsApp number
         phone: cleanedPhone,
         custom_data: {
             userId: user.uid
-=======
-        callbackUrl: `${baseUrl}/api/payment/callback`,
-        returnUrl: `${baseUrl}/dashboard/upgrade/success`,
-        currency: "MZN",
-        enviroment: "prod",
-        custom_data: {
-            userId: userId
->>>>>>> fde9184 (elimine todas as pastas com API e inicie a integração da API do zero no)
         }
     };
 
