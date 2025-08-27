@@ -1,0 +1,24 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+# The command to build your application
+build:
+  run: 'npm run build'
+
+# The command to run your application
+entrypoint: npm start
+
+# Settings for Cloud Run
+runConfig:
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 50
+  cpu: 1
+  memoryMiB: 512
+
+# Instruct App Hosting to serve ACME challenge files correctly for SSL certs.
+headers:
+  - path: /.well-known/acme-challenge/**
+    headers:
+      - key: Cache-Control
+        value: 'public, max-age=86400, s-maxage=86400'
