@@ -138,7 +138,6 @@ export default function UpgradePage() {
                             <p className="font-bold text-3xl text-primary-foreground-dark">200 MT</p>
                             <p className="text-xs text-muted-foreground">Pagamento único e seguro.</p>
                         </div>
-<<<<<<< HEAD
                         
                         <RadioGroup defaultValue="mpesa" onValueChange={(value: 'mpesa' | 'emola') => setPaymentMethod(value)} className="grid grid-cols-2 gap-4">
                             <div>
@@ -184,24 +183,6 @@ export default function UpgradePage() {
                         </Button>
                     </CardFooter>
                 </form>
-=======
-                    </div>
-                     <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/20">
-                        <span className="font-semibold text-primary">Custo do Aumento de Limite</span>
-                        <p className="font-bold text-3xl text-primary-foreground-dark">200 MT</p>
-                        <p className="text-xs text-muted-foreground">Pagamento único e seguro via Nhonga.</p>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button className="w-full" onClick={handleUpgrade} disabled={isProcessing}>
-                        {isProcessing ? (
-                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Processando...</>
-                        ) : (
-                            <><CreditCard className="mr-2 h-5 w-5" /> Pagar 200 MT Agora</>
-                        )}
-                    </Button>
-                </CardFooter>
->>>>>>> fde9184 (elimine todas as pastas com API e inicie a integração da API do zero no)
             </Card>
         </div>
     )
