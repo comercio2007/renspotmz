@@ -1,277 +1,189 @@
 
-"use client"
-import Link from 'next/link'
-import { MoreHorizontal, PlusCircle, Edit, Trash2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import Image from 'next/image'
-import { useAuth } from '@/contexts/auth-context'
-import { useEffect, useState } from 'react'
-import { rtdb } from '@/lib/firebase'
-import { ref, query, orderByChild, equalTo, onValue, remove, update } from "firebase/database";
-import type { Property } from '@/lib/placeholder-data'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+"use client";
 
-export default function DashboardPage() {
-    const { user, loading: authLoading } = useAuth();
-    const router = useRouter();
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { useLoading } from "@/contexts/loading-context";
+import { createDirectPayment } from "@/actions/payment.actions";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { CreditCard, Zap, Loader2, Phone } from "lucide-react";
+import { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
+import Link from "next/link";
+
+
+export default function UpgradePage() {
+    const { user, propertyLimit } = useAuth();
+    const { setIsLoading } = useLoading();
     const { toast } = useToast();
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isClient, setIsClient] = useState(false);
+    const router = useRouter();
+    
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola'>('mpesa');
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [paymentInitiated, setPaymentInitiated] = useState(false);
 
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
 
-    useEffect(() => {
-        if (user) {
-            const propertiesRef = query(
-                ref(rtdb, 'properties'),
-                orderByChild('ownerId'),
-                equalTo(user.uid)
-            );
+    const handleUpgrade = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-            const unsubscribe = onValue(propertiesRef, (snapshot) => {
-                setLoading(true);
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const userProps: Property[] = Object.values(data as Record<string, Property>).sort((a: any, b: any) => b.createdAt - a.createdAt);
-                    setProperties(userProps);
-                } else {
-                    setProperties([]);
+        if (!user) {
+            toast({
+                title: "Erro de Autenticação",
+                description: "Precisa de estar logado para fazer o upgrade.",
+                variant: "destructive"
+            });
+            return router.push('/login');
+        }
+
+        if (!phoneNumber) {
+            toast({
+                title: "Campo Obrigatório",
+                description: "Por favor, insira o número de telefone.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsProcessing(true);
+        setIsLoading(true);
+
+        try {
+            const result = await createDirectPayment({
+                amount: 200,
+                context: `Upgrade de limite para o utilizador: ${user.email}`,
+                user: {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                },
+                payment: {
+                    method: paymentMethod,
+                    phone: phoneNumber
                 }
-                setLoading(false);
+            });
+
+            toast({
+                title: result.success ? "Pedido Enviado" : "Erro no Pagamento",
+                description: result.message,
+                variant: result.success ? "default" : "destructive"
             });
             
-            return () => unsubscribe();
+            if (result.success) {
+                setPaymentInitiated(true);
+            }
 
-        } else if (!authLoading) {
-            setLoading(false);
-        }
-    }, [user, authLoading]);
-
-    const handleDeleteProperty = async (propertyId: string) => {
-        try {
-            await remove(ref(rtdb, `properties/${propertyId}`));
+        } catch (error: any) {
             toast({
-                title: "Sucesso!",
-                description: "O imóvel foi excluído."
-            });
-        } catch (error) {
-            toast({
-                title: "Erro",
-                description: "Não foi possível excluir o imóvel.",
+                title: "Erro Inesperado",
+                description: error.message,
                 variant: "destructive"
-            })
-        }
-    }
-
-    const handleStatusChange = async (property: Property) => {
-        let newStatus: Property['status'];
-        if (property.listingType === 'Para Alugar') {
-            newStatus = property.status === 'Para Alugar' ? 'Alugado' : 'Para Alugar';
-        } else {
-            newStatus = property.status === 'À Venda' ? 'Vendido' : 'À Venda';
-        }
-
-        try {
-            await update(ref(rtdb, `properties/${property.id}`), { status: newStatus });
-            toast({
-                title: "Status Atualizado!",
-                description: `O imóvel foi marcado como ${newStatus}.`
             });
-        } catch (error) {
-            toast({
-                title: "Erro",
-                description: "Não foi possível atualizar o status do imóvel.",
-                variant: "destructive"
-            })
+        } finally {
+            setIsProcessing(false);
+            setIsLoading(false);
         }
     }
     
-    const getStatusChangeActionText = (property: Property): string => {
-        if (property.listingType === 'Para Alugar') {
-            return property.status === 'Para Alugar' ? 'Marcar como Alugado' : 'Marcar como Para Alugar';
-        } else {
-            return property.status === 'À Venda' ? 'Marcar como Vendido' : 'Marcar como À Venda';
-        }
-    };
-
-  return (
-    <div className="flex flex-col gap-8">
-        <div>
-            <h1 className="text-3xl font-bold font-headline">Bem-vindo de volta, {user?.displayName || 'Usuário'}!</h1>
-            <p className="text-muted-foreground">Aqui está uma lista de seus imóveis para alugar e à venda.</p>
-        </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Seus Imóveis</CardTitle>
-              <CardDescription>
-                Gerencie seus anúncios e veja o status deles.
-              </CardDescription>
+    if (paymentInitiated) {
+        return (
+             <div className="flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader className="text-center">
+                        <div className="mx-auto bg-green-500 text-white rounded-full h-16 w-16 flex items-center justify-center animate-pulse">
+                            <Phone className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="mt-4 text-2xl font-headline">Confirme no seu Telemóvel</CardTitle>
+                        <CardDescription>Enviámos uma notificação para o seu telemóvel para confirmar o pagamento de 200 MT. Por favor, autorize a transação.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <Alert>
+                          <Terminal className="h-4 w-4" />
+                          <AlertTitle>Aguardando Confirmação...</AlertTitle>
+                          <AlertDescription>
+                            Após a confirmação, o seu limite será atualizado automaticamente. Pode fechar esta página com segurança, a atualização ocorrerá em segundo plano.
+                          </AlertDescription>
+                        </Alert>
+                    </CardContent>
+                    <CardFooter>
+                        <Button className="w-full" asChild>
+                            <Link href="/dashboard">Voltar para o Painel</Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
             </div>
-            <Button asChild size="sm" className="gap-1">
-              <Link href="/dashboard/properties/new">
-                <PlusCircle className="h-4 w-4" />
-                Adicionar Imóvel
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  <span className="sr-only">Imagem</span>
-                </TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Preço</TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                 Array.from({length: 2}).map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell className="hidden sm:table-cell">
-                             <Skeleton className="h-16 w-16 rounded-md" />
-                        </TableCell>
-                        <TableCell><Skeleton className="h-6 w-40" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                        <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
-                    </TableRow>
-                 ))
-              ) : properties.length > 0 ? (
-                properties.map((property) => (
-                    <TableRow key={property.id}>
-                    <TableCell className="hidden sm:table-cell">
-                        <Image
-                        alt="Imagem do imóvel"
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={(property.images && property.images[0]) ? property.images[0] : 'https://placehold.co/64x64.png'}
-                        width="64"
-                        data-ai-hint="house exterior"
-                        />
-                    </TableCell>
-                    <TableCell className="font-medium">{property.title}</TableCell>
-                    <TableCell>
-                        <Badge variant={property.listingType === 'Para Venda' ? 'default' : 'secondary'}>
-                          {property.listingType}
-                        </Badge>
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant={['Alugado', 'Vendido'].includes(property.status) ? 'destructive' : 'outline'}>
-                        {property.status}
-                        </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                        {isClient ? property.price.toLocaleString() : property.price} MT
-                    </TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                            >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Alternar menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                             <DropdownMenuItem onSelect={() => router.push(`/dashboard/properties/edit/${property.id}`)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusChange(property)}>
-                                {getStatusChangeActionText(property)}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
-                                        <Trash2 className="mr-2 h-4 w-4"/>
-                                        Excluir
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Essa ação não pode ser desfeita. Isso excluirá permanentemente o imóvel.
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>Continuar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
-                    </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                        Você ainda não publicou nenhum imóvel. <Link href="/dashboard/properties/new" className="text-primary underline">Adicione um agora!</Link>
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  )
+        )
+    }
+
+    return (
+        <div className="flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+                 <form onSubmit={handleUpgrade}>
+                    <CardHeader className="text-center">
+                        <div className="mx-auto bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                            <Zap className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="mt-4 text-2xl font-headline">Aumentar Limite de Anúncios</CardTitle>
+                        <CardDescription>Aumente o seu limite de publicação em +3 imóveis para alcançar mais pessoas.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-6">
+                         <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/20">
+                            <span className="font-semibold text-primary">Custo do Aumento de Limite</span>
+                            <p className="font-bold text-3xl text-primary-foreground-dark">200 MT</p>
+                            <p className="text-xs text-muted-foreground">Pagamento único e seguro.</p>
+                        </div>
+                        
+                        <RadioGroup defaultValue="mpesa" onValueChange={(value: 'mpesa' | 'emola') => setPaymentMethod(value)} className="grid grid-cols-2 gap-4">
+                            <div>
+                                <RadioGroupItem value="mpesa" id="mpesa" className="peer sr-only" />
+                                <Label
+                                htmlFor="mpesa"
+                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                                >
+                                M-Pesa
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="emola" id="emola" className="peer sr-only" />
+                                <Label
+                                htmlFor="emola"
+                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                                >
+                                e-Mola
+                                </Label>
+                            </div>
+                        </RadioGroup>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="phone-number">Número de Telefone</Label>
+                            <Input 
+                                id="phone-number" 
+                                type="tel"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                placeholder={paymentMethod === 'mpesa' ? "841234567" : "871234567"}
+                                required 
+                            />
+                             <p className="text-xs text-muted-foreground">Insira o número que será usado para a cobrança.</p>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button type="submit" className="w-full" disabled={isProcessing}>
+                            {isProcessing ? (
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> A Processar...</>
+                            ) : (
+                                <><CreditCard className="mr-2 h-5 w-5" /> Pagar 200 MT Agora</>
+                            )}
+                        </Button>
+                    </CardFooter>
+                </form>
+            </Card>
+        </div>
+    )
 }
