@@ -147,6 +147,28 @@ export async function updateUserPropertyLimit(uid: string, limit: number): Promi
   }
 }
 
+export async function increaseUserPropertyLimit(uid: string): Promise<{ success: boolean, message: string }> {
+    try {
+        const userRef = adminDb.ref(`users/${uid}`);
+        const snapshot = await userRef.get();
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const currentLimit = userData.propertyLimit || 0;
+            const newLimit = currentLimit + 3;
+            await userRef.update({ propertyLimit: newLimit });
+            return { success: true, message: "Limite de imóveis aumentado com sucesso." };
+        } else {
+            // If user doesn't exist in DB, create them with the new limit
+            await userRef.set({ propertyLimit: 3 });
+            return { success: true, message: "Limite de imóveis definido com sucesso." };
+        }
+    } catch (error: any) {
+        console.error("Error increasing user property limit:", error);
+        return { success: false, message: `Falha ao aumentar o limite de imóveis: ${error.message}` };
+    }
+}
+
 
 export async function sendPasswordResetLink(email: string): Promise<{ success: boolean, message: string }> {
   try {
