@@ -6,15 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useAuth } from "@/contexts/auth-context";
 import { useLoading } from "@/contexts/loading-context";
 import { createDirectPayment } from "@/actions/payment.actions";
+import { increaseUserPropertyLimit } from "@/actions/user.actions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { CreditCard, Zap, Loader2, Phone } from "lucide-react";
-import { useState } from "react";
+import { CreditCard, Zap, Loader2, Phone, CheckCircle, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
 import Link from "next/link";
 
 
@@ -27,7 +26,9 @@ export default function UpgradePage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola'>('mpesa');
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [paymentInitiated, setPaymentInitiated] = useState(false);
+    
+    // State to manage the payment flow UI
+    const [paymentState, setPaymentState] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
 
 
     const handleUpgrade = async (e: React.FormEvent) => {
@@ -68,15 +69,28 @@ export default function UpgradePage() {
                     phone: phoneNumber
                 }
             });
-
-            toast({
-                title: result.success ? "Pedido Enviado" : "Erro no Pagamento",
-                description: result.message,
-                variant: result.success ? "default" : "destructive"
-            });
             
             if (result.success) {
-                setPaymentInitiated(true);
+                // Aumenta o limite imediatamente no lado do cliente
+                const limitResult = await increaseUserPropertyLimit(user.uid);
+                if (limitResult.success) {
+                    setPaymentState('success');
+                } else {
+                    // Se o aumento do limite falhar, informa o utilizador
+                    toast({
+                        title: "Erro ao Aumentar o Limite",
+                        description: limitResult.message + " O seu pagamento será verificado manualmente pela nossa equipa.",
+                        variant: "destructive"
+                    });
+                    setPaymentState('failed');
+                }
+            } else {
+                 toast({
+                    title: "Erro no Pagamento",
+                    description: result.message,
+                    variant: "destructive"
+                });
+                 setPaymentState('failed');
             }
 
         } catch (error: any) {
@@ -85,33 +99,51 @@ export default function UpgradePage() {
                 description: error.message,
                 variant: "destructive"
             });
+             setPaymentState('failed');
         } finally {
             setIsProcessing(false);
             setIsLoading(false);
         }
     }
     
-    if (paymentInitiated) {
+    if (paymentState === 'success') {
         return (
-             <div className="flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <CardHeader className="text-center">
-                        <div className="mx-auto bg-green-500 text-white rounded-full h-16 w-16 flex items-center justify-center animate-pulse">
-                            <Phone className="h-8 w-8" />
+            <div className="flex items-center justify-center p-4">
+                <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <div className="mx-auto bg-green-500 text-white rounded-full h-16 w-16 flex items-center justify-center">
+                            <CheckCircle className="h-8 w-8" />
                         </div>
-                        <CardTitle className="mt-4 text-2xl font-headline">Confirme no seu Telemóvel</CardTitle>
-                        <CardDescription>Enviámos uma notificação para o seu telemóvel para confirmar o pagamento de 200 MT. Por favor, autorize a transação.</CardDescription>
+                        <CardTitle className="mt-4 text-2xl font-headline">Pagamento Bem-Sucedido!</CardTitle>
+                        <CardDescription>O seu limite de imóveis foi aumentado com sucesso. Agora pode publicar mais imóveis.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                       <Alert>
-                          <Terminal className="h-4 w-4" />
-                          <AlertTitle>Aguardando Confirmação...</AlertTitle>
-                          <AlertDescription>
-                            Após a confirmação, o seu limite será atualizado automaticamente. Pode fechar esta página com segurança, a atualização ocorrerá em segundo plano.
-                          </AlertDescription>
-                        </Alert>
-                    </CardContent>
                     <CardFooter>
+                        <Button className="w-full" asChild>
+                            <Link href="/dashboard">Voltar para o Painel</Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        )
+    }
+
+    if (paymentState === 'failed') {
+        return (
+            <div className="flex items-center justify-center p-4">
+                <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <div className="mx-auto bg-destructive text-destructive-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                            <AlertCircle className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="mt-4 text-2xl font-headline">Pagamento Falhou</CardTitle>
+                        <CardDescription>A transação não foi concluída. Por favor, verifique o seu saldo e tente novamente.</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex gap-2">
+                         <Button variant="outline" className="w-full" onClick={() => {
+                             setPaymentState('idle');
+                         }}>
+                            Tentar Novamente
+                        </Button>
                         <Button className="w-full" asChild>
                             <Link href="/dashboard">Voltar para o Painel</Link>
                         </Button>
