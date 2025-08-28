@@ -154,6 +154,24 @@ export default function Home() {
       setAppliedFilters({ ...defaultFilters, priceRange: priceConfig.defaultRange });
   }
 
+  const handleManualPriceChange = (index: 0 | 1, value: string) => {
+    if (isFilterDisabled) {
+      router.push('/login');
+      return;
+    }
+    const numericValue = value === '' ? (index === 0 ? priceConfig.min : priceConfig.max) : parseInt(value, 10);
+    const newPriceRange = [...priceRange] as [number, number];
+    
+    if (!isNaN(numericValue)) {
+      if (index === 0) { // Min price
+        newPriceRange[0] = Math.max(priceConfig.min, Math.min(numericValue, priceRange[1]));
+      } else { // Max price
+        newPriceRange[1] = Math.min(priceConfig.max, Math.max(numericValue, priceRange[0]));
+      }
+      setPriceRange(newPriceRange);
+    }
+  };
+
 
   const filteredProperties = useMemo(() => {
     return properties.filter(property => {
@@ -168,8 +186,7 @@ export default function Home() {
 
       const { priceRange, bedrooms, bathrooms, searchQuery, selectedAmenities } = appliedFilters;
       
-      const maxPrice = priceConfig.max;
-      const matchesPrice = property.price >= priceRange[0] && (priceRange[1] >= maxPrice ? true : property.price <= priceRange[1]);
+      const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
       const matchesBedrooms = bedrooms === 'any' || (bedrooms === '4' ? property.bedrooms >= 4 : property.bedrooms === parseInt(bedrooms));
       const matchesBathrooms = bathrooms === 'any' || (bathrooms === '3' ? property.bathrooms >= 3 : property.bathrooms === parseInt(bathrooms));
       const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -179,7 +196,7 @@ export default function Home() {
 
       return matchesPrice && matchesBedrooms && matchesBathrooms && matchesSearch && matchesAmenities;
     });
-  }, [properties, appliedFilters, listingType, priceConfig.max]);
+  }, [properties, appliedFilters, listingType]);
   
   const totalPages = Math.ceil(filteredProperties.length / PROPERTIES_PER_PAGE);
 
@@ -246,7 +263,7 @@ export default function Home() {
               {/* Filtros na lateral */}
               <aside className="md:col-span-1">
                 <div className="p-6 rounded-lg shadow-lg bg-secondary/30 sticky top-24">
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
                     <AccordionItem value="item-1">
                       <AccordionTrigger>
                         <h3 className="text-xl font-bold flex items-center"><Filter className="mr-2 h-5 w-5"/> Filtros de Pesquisa</h3>
@@ -271,9 +288,26 @@ export default function Home() {
                               className="mt-4"
                               disabled={isFilterDisabled}
                             />
-                            <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                              <span>{isClient ? priceRange[0].toLocaleString() : priceRange[0]} MT</span>
-                              <span>{isClient ? (priceRange[1] >= priceConfig.max ? `${priceConfig.max.toLocaleString()}+ MT` : `${priceRange[1].toLocaleString()} MT`) : `${priceRange[1]}+ MT`}</span>
+                            <div className="flex justify-between items-center text-xs text-muted-foreground mt-2 gap-2">
+                                <Input
+                                  type="number"
+                                  className="w-full text-center"
+                                  value={priceRange[0]}
+                                  onChange={(e) => handleManualPriceChange(0, e.target.value)}
+                                  disabled={isFilterDisabled}
+                                  min={priceConfig.min}
+                                  max={priceConfig.max}
+                                />
+                                <span className="text-muted-foreground">-</span>
+                                <Input
+                                  type="number"
+                                  className="w-full text-center"
+                                  value={priceRange[1]}
+                                  onChange={(e) => handleManualPriceChange(1, e.target.value)}
+                                  disabled={isFilterDisabled}
+                                  min={priceConfig.min}
+                                  max={priceConfig.max}
+                                />
                             </div>
                           </div>
 
@@ -453,3 +487,5 @@ export default function Home() {
     </>
   );
 }
+
+    
