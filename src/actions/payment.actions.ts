@@ -90,3 +90,45 @@ export async function createDirectPayment(args: CreateDirectPaymentArgs): Promis
         };
     }
 }
+
+interface CheckPaymentStatusResponse {
+    status: 'pending' | 'completed' | 'failed' | 'error';
+    message: string;
+}
+
+export async function checkPaymentStatus(transactionId: string): Promise<CheckPaymentStatusResponse> {
+    const apiKey = process.env.NHONGA_API_KEY;
+     if (!apiKey) {
+        console.error("A chave da API de pagamento (NHONGA_API_KEY) não está configurada.");
+        return { status: 'error', message: "Configuração do servidor incompleta." };
+    }
+
+    try {
+        const response = await fetch(`https://nhonga.net/api/payment/mobile/${transactionId}`, {
+            method: 'GET',
+            headers: {
+                'apiKey': apiKey,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+
+        if (response.ok && data.data) {
+             switch (data.data.status) {
+                case 'completed':
+                    return { status: 'completed', message: 'Pagamento concluído com sucesso.' };
+                case 'failed':
+                    return { status: 'failed', message: 'O pagamento falhou ou foi cancelado.' };
+                default:
+                    return { status: 'pending', message: 'O pagamento ainda está pendente.' };
+            }
+        } else {
+             return { status: 'error', message: data.error || 'Não foi possível obter o estado do pagamento.' };
+        }
+
+    } catch (error: any) {
+        console.error("Erro ao verificar o estado do pagamento:", error);
+        return { status: 'error', message: `Erro de comunicação com o serviço de pagamento: ${error.message}` };
+    }
+}
