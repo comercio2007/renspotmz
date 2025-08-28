@@ -35,9 +35,17 @@ const amenitiesList = [
   "Totalmente Mobilado", "Varanda", "Jardim", "Segurança 24h"
 ];
 
-const defaultFilters = {
+const defaultFiltersRent = {
   searchQuery: "",
   priceRange: [800, 100000] as [number, number],
+  bedrooms: "any",
+  bathrooms: "any",
+  selectedAmenities: [] as string[],
+};
+
+const defaultFiltersSale = {
+  searchQuery: "",
+  priceRange: [30000, 500000000] as [number, number],
   bedrooms: "any",
   bathrooms: "any",
   selectedAmenities: [] as string[],
@@ -55,14 +63,14 @@ export default function Home() {
   const [listingType, setListingType] = useState<'Para Alugar' | 'Para Venda'>('Para Alugar');
   
   // State for filter inputs
-  const [searchQuery, setSearchQuery] = useState(defaultFilters.searchQuery);
-  const [priceRange, setPriceRange] = useState(defaultFilters.priceRange);
-  const [bedrooms, setBedrooms] = useState(defaultFilters.bedrooms);
-  const [bathrooms, setBathrooms] = useState(defaultFilters.bathrooms);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(defaultFilters.selectedAmenities);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceRange, setPriceRange] = useState<[number, number]>([800, 100000]);
+  const [bedrooms, setBedrooms] = useState("any");
+  const [bathrooms, setBathrooms] = useState("any");
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
   // State for applied filters
-  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
+  const [appliedFilters, setAppliedFilters] = useState(defaultFiltersRent);
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterDisabled, setIsFilterDisabled] = useState(true);
@@ -73,19 +81,31 @@ export default function Home() {
 
   const priceConfig = useMemo(() => {
       if (listingType === 'Para Venda') {
-          return { min: 500000, max: 20000000, step: 100000, defaultRange: [500000, 20000000] as [number, number] };
+          return { min: 30000, max: 500000000, step: 100000, defaultRange: [30000, 500000000] as [number, number] };
       }
       return { min: 800, max: 100000, step: 1000, defaultRange: [800, 100000] as [number, number] };
   }, [listingType]);
 
+  const defaultFilters = useMemo(() => {
+    return listingType === 'Para Alugar' ? defaultFiltersRent : defaultFiltersSale;
+  }, [listingType]);
+
   useEffect(() => {
-    // Reset filters when listing type changes
-    handleResetFilters();
-    setPriceRange(priceConfig.defaultRange);
-    setPriceInput([priceConfig.defaultRange[0].toString(), priceConfig.defaultRange[1].toString()]);
-    setAppliedFilters(prev => ({ ...prev, priceRange: priceConfig.defaultRange }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listingType, priceConfig]);
+    // This effect runs when the listingType changes, ensuring filters are reset correctly.
+    const newDefaultFilters = listingType === 'Para Alugar' ? defaultFiltersRent : defaultFiltersSale;
+    
+    // Reset input states
+    setSearchQuery(newDefaultFilters.searchQuery);
+    setPriceRange(newDefaultFilters.priceRange);
+    setPriceInput([newDefaultFilters.priceRange[0].toString(), newDefaultFilters.priceRange[1].toString()]);
+    setBedrooms(newDefaultFilters.bedrooms);
+    setBathrooms(newDefaultFilters.bathrooms);
+    setSelectedAmenities(newDefaultFilters.selectedAmenities);
+    
+    // CRITICAL: Reset the *applied* filters as well to trigger re-render
+    setAppliedFilters(newDefaultFilters);
+    setCurrentPage(1);
+  }, [listingType]);
   
   // Sync slider state with input state
   useEffect(() => {
@@ -142,8 +162,8 @@ export default function Home() {
   }, [currentFilters, appliedFilters]);
 
   const areFiltersApplied = useMemo(() => {
-    return JSON.stringify(appliedFilters) !== JSON.stringify({ ...defaultFilters, priceRange: priceConfig.defaultRange });
-  }, [appliedFilters, defaultFilters, priceConfig.defaultRange]);
+    return JSON.stringify(appliedFilters) !== JSON.stringify(defaultFilters);
+  }, [appliedFilters, defaultFilters]);
 
   const handleApplyFilters = () => {
       if(isFilterDisabled) {
@@ -156,14 +176,18 @@ export default function Home() {
 
   const handleResetFilters = () => {
       if(isFilterDisabled) return;
-      setCurrentPage(1);
+      
+      // Reset input states to the defaults for the current listing type
       setSearchQuery(defaultFilters.searchQuery);
-      setPriceRange(priceConfig.defaultRange);
-      setPriceInput([priceConfig.defaultRange[0].toString(), priceConfig.defaultRange[1].toString()]);
+      setPriceRange(defaultFilters.priceRange);
+      setPriceInput([defaultFilters.priceRange[0].toString(), defaultFilters.priceRange[1].toString()]);
       setBedrooms(defaultFilters.bedrooms);
       setBathrooms(defaultFilters.bathrooms);
       setSelectedAmenities(defaultFilters.selectedAmenities);
-      setAppliedFilters({ ...defaultFilters, priceRange: priceConfig.defaultRange });
+
+      // Reset the applied filters to trigger re-render
+      setAppliedFilters(defaultFilters);
+      setCurrentPage(1);
   }
 
   const handleManualPriceInputChange = (index: 0 | 1, value: string) => {
@@ -192,7 +216,7 @@ export default function Home() {
         value = Math.max(priceConfig.min, Math.min(value, priceRange[1]));
         newPriceRange[0] = value;
     } else { // Max price
-        value = Math.min(priceConfig.max, Math.max(value, priceRange[0]));
+        value = Math.max(value, priceRange[0]); // No upper bound from config
         newPriceRange[1] = value;
     }
 
@@ -201,16 +225,16 @@ export default function Home() {
 
 
   const filteredProperties = useMemo(() => {
-    return properties.filter(property => {
-      if (!property) return false;
-
-      // Filter by listing type first
-      if (property.listingType !== listingType) return false;
-
-      // Ensure only available properties are shown
-      const availableStatuses = ['Para Alugar', 'À Venda'];
-      if (!availableStatuses.includes(property.status)) return false;
-
+    // 1. Start with the full list and filter by the selected listingType and its active status.
+    const activeStatus = listingType === 'Para Alugar' ? 'Para Alugar' : 'À Venda';
+    let baseFiltered = properties.filter(property => 
+      property && 
+      property.listingType === listingType && 
+      property.status === activeStatus
+    );
+    
+    // 2. Then, apply the user's detailed filters from `appliedFilters` state.
+    return baseFiltered.filter(property => {
       const { priceRange, bedrooms, bathrooms, searchQuery, selectedAmenities } = appliedFilters;
       
       const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
