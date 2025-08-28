@@ -41,7 +41,7 @@ import { InstallPWA } from "@/components/install-pwa"
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.React.Node
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -169,7 +169,7 @@ export default function DashboardLayout({
         </Sidebar>
         <SidebarInset className="flex flex-col">
           <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:justify-end">
-            <SidebarTrigger className="sm:hidden" />
+            <SidebarTrigger className="sm:hidden h-8 w-8" />
             <UserNav />
           </header>
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
