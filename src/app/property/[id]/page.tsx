@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { BedDouble, Bath, Square, MapPin, DollarSign, CheckCircle, Phone, MessageCircle, Expand } from "lucide-react";
+import { BedDouble, Bath, Square, MapPin, DollarSign, CheckCircle, Phone, MessageCircle, Expand, X } from "lucide-react";
 import { rtdb } from "@/lib/firebase";
 import { ref, get } from "firebase/database";
 import type { Property } from "@/lib/placeholder-data";
@@ -21,6 +21,7 @@ import {
   DialogTrigger,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog"
 
 
@@ -177,6 +178,10 @@ export default function PropertyPage() {
               <DialogContent className="max-w-screen max-h-screen w-full h-full p-0 bg-black/90 border-0 flex items-center justify-center">
                  <DialogTitle className="sr-only">Galeria de Imagens em Tela Cheia</DialogTitle>
                  <DialogDescription className="sr-only">Navegue pelas imagens do imóvel em modo de tela cheia. Use as setas para avançar ou retroceder.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 z-20 text-white bg-black/20 hover:bg-black/50 rounded-full p-2">
+                    <X className="h-6 w-6" />
+                    <span className="sr-only">Fechar</span>
+                </DialogClose>
                 <Carousel
                   setApi={setFullscreenApi}
                   opts={{
