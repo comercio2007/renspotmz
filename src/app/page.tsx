@@ -67,6 +67,10 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterDisabled, setIsFilterDisabled] = useState(true);
 
+  // Separate state for the input fields to allow temporary empty values
+  const [priceInput, setPriceInput] = useState<[string, string]>(['', '']);
+
+
   const priceConfig = useMemo(() => {
       if (listingType === 'Para Venda') {
           return { min: 500000, max: 20000000, step: 100000, defaultRange: [500000, 20000000] as [number, number] };
@@ -78,8 +82,15 @@ export default function Home() {
     // Reset filters when listing type changes
     handleResetFilters();
     setPriceRange(priceConfig.defaultRange);
+    setPriceInput([priceConfig.defaultRange[0].toString(), priceConfig.defaultRange[1].toString()]);
     setAppliedFilters(prev => ({ ...prev, priceRange: priceConfig.defaultRange }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingType, priceConfig]);
+  
+  // Sync slider state with input state
+  useEffect(() => {
+    setPriceInput([priceRange[0].toString(), priceRange[1].toString()]);
+  }, [priceRange]);
 
 
   useEffect(() => {
@@ -148,29 +159,45 @@ export default function Home() {
       setCurrentPage(1);
       setSearchQuery(defaultFilters.searchQuery);
       setPriceRange(priceConfig.defaultRange);
+      setPriceInput([priceConfig.defaultRange[0].toString(), priceConfig.defaultRange[1].toString()]);
       setBedrooms(defaultFilters.bedrooms);
       setBathrooms(defaultFilters.bathrooms);
       setSelectedAmenities(defaultFilters.selectedAmenities);
       setAppliedFilters({ ...defaultFilters, priceRange: priceConfig.defaultRange });
   }
 
-  const handleManualPriceChange = (index: 0 | 1, value: string) => {
+  const handleManualPriceInputChange = (index: 0 | 1, value: string) => {
     if (isFilterDisabled) {
       router.push('/login');
       return;
     }
-    const numericValue = value === '' ? (index === 0 ? priceConfig.min : priceConfig.max) : parseInt(value, 10);
+    const newPriceInput = [...priceInput] as [string, string];
+    newPriceInput[index] = value;
+    setPriceInput(newPriceInput);
+  };
+
+  const handlePriceInputBlur = (index: 0 | 1) => {
+    if (isFilterDisabled) return;
+
+    let value = parseInt(priceInput[index], 10);
     const newPriceRange = [...priceRange] as [number, number];
     
-    if (!isNaN(numericValue)) {
-      if (index === 0) { // Min price
-        newPriceRange[0] = Math.max(priceConfig.min, Math.min(numericValue, priceRange[1]));
-      } else { // Max price
-        newPriceRange[1] = Math.min(priceConfig.max, Math.max(numericValue, priceRange[0]));
-      }
-      setPriceRange(newPriceRange);
+    // If input is empty or not a number, revert to the current slider value
+    if (isNaN(value)) {
+        setPriceInput([priceRange[0].toString(), priceRange[1].toString()]);
+        return;
     }
-  };
+
+    if (index === 0) { // Min price
+        value = Math.max(priceConfig.min, Math.min(value, priceRange[1]));
+        newPriceRange[0] = value;
+    } else { // Max price
+        value = Math.min(priceConfig.max, Math.max(value, priceRange[0]));
+        newPriceRange[1] = value;
+    }
+
+    setPriceRange(newPriceRange);
+  }
 
 
   const filteredProperties = useMemo(() => {
@@ -290,23 +317,21 @@ export default function Home() {
                             />
                             <div className="flex justify-between items-center text-xs text-muted-foreground mt-2 gap-2">
                                 <Input
-                                  type="number"
+                                  type="text"
                                   className="w-full text-center"
-                                  value={priceRange[0]}
-                                  onChange={(e) => handleManualPriceChange(0, e.target.value)}
+                                  value={priceInput[0]}
+                                  onChange={(e) => handleManualPriceInputChange(0, e.target.value)}
+                                  onBlur={() => handlePriceInputBlur(0)}
                                   disabled={isFilterDisabled}
-                                  min={priceConfig.min}
-                                  max={priceConfig.max}
                                 />
                                 <span className="text-muted-foreground">-</span>
                                 <Input
-                                  type="number"
+                                  type="text"
                                   className="w-full text-center"
-                                  value={priceRange[1]}
-                                  onChange={(e) => handleManualPriceChange(1, e.target.value)}
+                                  value={priceInput[1]}
+                                  onChange={(e) => handleManualPriceInputChange(1, e.target.value)}
+                                  onBlur={() => handlePriceInputBlur(1)}
                                   disabled={isFilterDisabled}
-                                  min={priceConfig.min}
-                                  max={priceConfig.max}
                                 />
                             </div>
                           </div>
@@ -487,5 +512,3 @@ export default function Home() {
     </>
   );
 }
-
-    
