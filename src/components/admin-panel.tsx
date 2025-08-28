@@ -42,6 +42,7 @@ import { UserStats } from "./user-stats";
 import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Label } from "./ui/label";
+import { useLoading } from "@/contexts/loading-context";
 
 
 type AdminPanelProps = {
@@ -55,6 +56,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const { setIsLoading } = useLoading();
 
   const [properties, setProperties] = useState<Property[]>(initialProperties);
   const [users, setUsers] = useState<UserRecord[]>(initialUsers);
@@ -101,6 +103,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
   }, [userSearchTerm, users]);
 
   const handleDeleteProperty = async (propertyId: string) => {
+    setIsLoading(true);
     startTransition(async () => {
         try {
             await remove(ref(rtdb, `properties/${propertyId}`));
@@ -115,11 +118,14 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
                 description: "Não foi possível excluir o imóvel.",
                 variant: "destructive"
             })
+        } finally {
+            setIsLoading(false);
         }
     });
   }
   
   const handleToggleStatus = async (uid: string, disabled: boolean) => {
+    setIsLoading(true);
     startTransition(async () => {
       const result = await toggleUserStatus(uid, disabled);
       toast({
@@ -134,10 +140,12 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
           )
         );
       }
+      setIsLoading(false);
     });
   }
 
   const handleDeleteUser = async (uid: string) => {
+    setIsLoading(true);
     startTransition(async () => {
         const result = await deleteUser(uid);
         if (result.success) {
@@ -148,6 +156,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
             description: result.message,
             variant: result.success ? "default" : "destructive",
         })
+        setIsLoading(false);
     })
   }
   
@@ -159,6 +168,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
   const handleUpdateLimit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
+    setIsLoading(true);
     startTransition(async () => {
         const result = await updateUserPropertyLimit(editingUser.uid, newLimit);
         toast({
@@ -170,6 +180,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
             setUsers(prev => prev.map(u => u.uid === editingUser.uid ? {...u, propertyLimit: newLimit} : u));
             setEditingUser(null);
         }
+        setIsLoading(false);
     });
   }
 
@@ -188,7 +199,10 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
             <CardHeader>
                 <Button onClick={() => setSelectedProperty(null)} variant="outline" className="mb-4 w-fit">Voltar</Button>
                 <CardTitle>{selectedProperty.title}</CardTitle>
-                <CardDescription>ID: {selectedProperty.id}</CardDescription>
+                <CardDescription>
+                    ID: {selectedProperty.id} <br />
+                    Proprietário: {selectedProperty.ownerEmail || "N/A"}
+                </CardDescription>
             </CardHeader>
             <CardContent>
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
