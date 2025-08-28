@@ -21,7 +21,13 @@ import { ref, onValue, query, orderByChild } from "firebase/database";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 
 const amenitiesList = [
@@ -240,120 +246,126 @@ export default function Home() {
               {/* Filtros na lateral */}
               <aside className="md:col-span-1">
                 <div className="p-6 rounded-lg shadow-lg bg-secondary/30 sticky top-24">
-                  <h3 className="text-xl font-bold mb-4 flex items-center"><Filter className="mr-2 h-5 w-5"/> Filtros</h3>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <Label htmlFor="price-range" className="font-semibold">Faixa de Preço (MT)</Label>
-                       <Slider
-                        id="price-range"
-                        value={priceRange}
-                        onValueChange={(value) => { 
-                             if(isFilterDisabled) {
-                                router.push('/login');
-                                return
-                             };
-                            setPriceRange(value as [number, number]); 
-                        }}
-                        max={priceConfig.max}
-                        min={priceConfig.min}
-                        step={priceConfig.step}
-                        className="mt-4"
-                        disabled={isFilterDisabled}
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                        <span>{isClient ? priceRange[0].toLocaleString() : priceRange[0]} MT</span>
-                        <span>{isClient ? (priceRange[1] >= priceConfig.max ? `${priceConfig.max.toLocaleString()}+ MT` : `${priceRange[1].toLocaleString()} MT`) : `${priceRange[1]}+ MT`}</span>
-                      </div>
-                    </div>
-
-                     <div>
-                      <Label className="font-semibold">Quartos</Label>
-                       <Select 
-                          value={bedrooms} 
-                          onValueChange={(value) => {
-                              if(isFilterDisabled) {
-                                router.push('/login');
-                                return;
-                              }
-                             setBedrooms(value); 
-                           }}
-                          disabled={isFilterDisabled}
-                        >
-                        <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
-                          <SelectValue placeholder="Qualquer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="any">Qualquer</SelectItem>
-                          <SelectItem value="1">1 Quarto</SelectItem>
-                          <SelectItem value="2">2 Quartos</SelectItem>
-                          <SelectItem value="3">3 Quartos</SelectItem>
-                          <SelectItem value="4">4+ Quartos</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="font-semibold">Banheiros</Label>
-                       <Select 
-                          value={bathrooms}
-                          onValueChange={(value) => { 
-                               if(isFilterDisabled) {
-                                router.push('/login');
-                                return;
-                               }
-                              setBathrooms(value); 
-                          }}
-                          disabled={isFilterDisabled}
-                        >
-                        <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
-                          <SelectValue placeholder="Qualquer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="any">Qualquer</SelectItem>
-                          <SelectItem value="1">1 Banheiro</SelectItem>
-                          <SelectItem value="2">2 Banheiros</SelectItem>
-                          <SelectItem value="3">3+ Banheiros</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="font-semibold">Comodidades</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2 mt-2">
-                         {amenitiesList.slice(0, 6).map(amenity => (
-                          <div key={amenity} className="flex items-center gap-2">
-                            <Checkbox 
-                              id={`filter-${amenity}`} 
-                              checked={selectedAmenities.includes(amenity)}
-                              onCheckedChange={() => handleAmenityChange(amenity)}
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                      <AccordionTrigger>
+                        <h3 className="text-xl font-bold flex items-center"><Filter className="mr-2 h-5 w-5"/> Filtros de Pesquisa</h3>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-6 pt-4">
+                          <div>
+                            <Label htmlFor="price-range" className="font-semibold">Faixa de Preço (MT)</Label>
+                            <Slider
+                              id="price-range"
+                              value={priceRange}
+                              onValueChange={(value) => { 
+                                  if(isFilterDisabled) {
+                                      router.push('/login');
+                                      return
+                                  };
+                                  setPriceRange(value as [number, number]); 
+                              }}
+                              max={priceConfig.max}
+                              min={priceConfig.min}
+                              step={priceConfig.step}
+                              className="mt-4"
                               disabled={isFilterDisabled}
                             />
-                            <Label htmlFor={`filter-${amenity}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                              {amenity}
-                            </Label>
+                            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                              <span>{isClient ? priceRange[0].toLocaleString() : priceRange[0]} MT</span>
+                              <span>{isClient ? (priceRange[1] >= priceConfig.max ? `${priceConfig.max.toLocaleString()}+ MT` : `${priceRange[1].toLocaleString()} MT`) : `${priceRange[1]}+ MT`}</span>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    <div className="flex flex-col gap-2 pt-4 border-t">
-                       {areFiltersChanged && !isFilterDisabled && (
-                         <Button onClick={handleApplyFilters}>
-                            <Filter className="mr-2 h-4 w-4" />
-                            Aplicar Filtros
-                         </Button>
-                       )}
-                       {areFiltersApplied && !isFilterDisabled && (
-                        <Button onClick={handleResetFilters} variant="outline">
-                            <X className="mr-2 h-4 w-4" />
-                            Remover Filtros
-                        </Button>
-                       )}
-                       {isFilterDisabled && <p className="text-xs text-muted-foreground text-center">Faça login para aplicar filtros.</p>}
-                    </div>
+                          <div>
+                            <Label className="font-semibold">Quartos</Label>
+                            <Select 
+                                value={bedrooms} 
+                                onValueChange={(value) => {
+                                    if(isFilterDisabled) {
+                                      router.push('/login');
+                                      return;
+                                    }
+                                  setBedrooms(value); 
+                                }}
+                                disabled={isFilterDisabled}
+                              >
+                              <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
+                                <SelectValue placeholder="Qualquer" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="any">Qualquer</SelectItem>
+                                <SelectItem value="1">1 Quarto</SelectItem>
+                                <SelectItem value="2">2 Quartos</SelectItem>
+                                <SelectItem value="3">3 Quartos</SelectItem>
+                                <SelectItem value="4">4+ Quartos</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                  </div>
+                          <div>
+                            <Label className="font-semibold">Banheiros</Label>
+                            <Select 
+                                value={bathrooms}
+                                onValueChange={(value) => { 
+                                    if(isFilterDisabled) {
+                                      router.push('/login');
+                                      return;
+                                    }
+                                    setBathrooms(value); 
+                                }}
+                                disabled={isFilterDisabled}
+                              >
+                              <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
+                                <SelectValue placeholder="Qualquer" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="any">Qualquer</SelectItem>
+                                <SelectItem value="1">1 Banheiro</SelectItem>
+                                <SelectItem value="2">2 Banheiros</SelectItem>
+                                <SelectItem value="3">3+ Banheiros</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label className="font-semibold">Comodidades</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2 mt-2">
+                              {amenitiesList.slice(0, 6).map(amenity => (
+                                <div key={amenity} className="flex items-center gap-2">
+                                  <Checkbox 
+                                    id={`filter-${amenity}`} 
+                                    checked={selectedAmenities.includes(amenity)}
+                                    onCheckedChange={() => handleAmenityChange(amenity)}
+                                    disabled={isFilterDisabled}
+                                  />
+                                  <Label htmlFor={`filter-${amenity}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {amenity}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 pt-4 border-t">
+                            {areFiltersChanged && !isFilterDisabled && (
+                              <Button onClick={handleApplyFilters}>
+                                  <Filter className="mr-2 h-4 w-4" />
+                                  Aplicar Filtros
+                              </Button>
+                            )}
+                            {areFiltersApplied && !isFilterDisabled && (
+                              <Button onClick={handleResetFilters} variant="outline">
+                                  <X className="mr-2 h-4 w-4" />
+                                  Remover Filtros
+                              </Button>
+                            )}
+                            {isFilterDisabled && <p className="text-xs text-muted-foreground text-center">Faça login para aplicar filtros.</p>}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
               </aside>
 
