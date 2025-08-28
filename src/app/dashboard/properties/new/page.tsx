@@ -169,11 +169,8 @@ export default function NewPropertyPage() {
                 description: "Você será redirecionado para aumentar seu limite.",
                 variant: "destructive",
             });
-            setTimeout(() => {
-                router.push('/dashboard/upgrade');
-            }, 2000);
-            setIsSubmitting(false);
-            setIsLoading(false);
+            router.push('/dashboard/upgrade');
+            // No need to set submitting/loading to false here, as we are redirecting.
             return;
         }
 
