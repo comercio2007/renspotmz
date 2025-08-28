@@ -2,9 +2,10 @@
 "use client";
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Home, PlusCircle } from 'lucide-react';
+import { PlusCircle, Home } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useAuth } from '@/contexts/auth-context';
+
 
 export function Header() {
   const { user, loading } = useAuth();

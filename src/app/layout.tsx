@@ -7,7 +7,6 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { LoadingProvider } from '@/contexts/loading-context'
 import { SplashScreen } from '@/components/splash-screen'
 import { GlobalLoader } from '@/components/global-loader'
-import { InstallPWA } from "@/components/install-pwa"
 
 const ptSans = PT_Sans({
   subsets: ['latin'],

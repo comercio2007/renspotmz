@@ -4,8 +4,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import type { Property } from "@/lib/placeholder-data";
 import { BedDouble, Bath, MapPin, DollarSign } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type PropertyCardProps = {
@@ -13,23 +11,13 @@ type PropertyCardProps = {
 };
 
 export function PropertyCard({ property }: PropertyCardProps) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!user && !loading) {
-      e.preventDefault();
-      router.push('/login');
-    }
-  };
   
   return (
-    <Link href={`/property/${property.id}`} onClick={handleClick} className="h-full">
       <Card className="w-full overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
         <CardHeader className="p-0 relative">
           <Image
@@ -48,7 +36,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           </Badge>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
-          <CardTitle className="text-lg mb-2 font-headline leading-tight h-14 overflow-hidden">
+          <CardTitle className="text-lg mb-2 font-headline leading-tight">
             {property.title}
           </CardTitle>
           <div className="text-muted-foreground text-sm flex items-center mb-4">
@@ -75,6 +63,5 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
         </CardFooter>
       </Card>
-    </Link>
   );
 }

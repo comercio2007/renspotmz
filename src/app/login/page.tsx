@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Home } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
   Dialog,
@@ -22,6 +21,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { sendPasswordResetLink } from "@/actions/user.actions";
+import { Home } from "lucide-react";
+import { useLoading } from "@/contexts/loading-context";
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -42,10 +44,12 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const auth = getAuth(app);
+  const { setIsLoading } = useLoading();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/')
@@ -77,11 +81,13 @@ export default function LoginPage() {
       })
     } finally {
       setLoading(false)
+      setIsLoading(false);
     }
   }
   
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setIsLoading(true);
     try {
         await signInWithPopup(auth, googleProvider);
         router.push('/');
@@ -93,6 +99,7 @@ export default function LoginPage() {
         });
     } finally {
         setLoading(false);
+        setIsLoading(false);
     }
   }
 
@@ -108,6 +115,7 @@ export default function LoginPage() {
       return;
     }
     setResetLoading(true);
+    setIsLoading(true);
     try {
         // Call the server action to validate and trigger email.
         const result = await sendPasswordResetLink(resetEmail);
@@ -137,6 +145,7 @@ export default function LoginPage() {
         });
     } finally {
         setResetLoading(false);
+        setIsLoading(false);
     }
   }
 
@@ -241,3 +250,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
+    

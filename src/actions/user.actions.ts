@@ -24,6 +24,35 @@ export type AdminPanelDataResponse = {
     error?: string;
 }
 
+export async function getUsers(): Promise<{users?: UserRecord[], error?: string}> {
+    try {
+        const listUsersResult = await adminAuth.listUsers(1000);
+        const authUsers = listUsersResult.users;
+
+        const dbUsersSnapshot = await adminDb.ref('users').get();
+        const dbUsersData = dbUsersSnapshot.val() || {};
+
+        const combinedUsers: UserRecord[] = authUsers.map(authUser => {
+            const dbUser = dbUsersData[authUser.uid];
+            return {
+                uid: authUser.uid,
+                email: authUser.email,
+                displayName: authUser.displayName,
+                disabled: authUser.disabled,
+                creationTime: authUser.metadata.creationTime,
+                lastSignInTime: authUser.metadata.lastSignInTime,
+                propertyLimit: dbUser?.propertyLimit ?? 1,
+            };
+        });
+
+        return { users: combinedUsers };
+    } catch (error: any) {
+        // Simplified error handling for this specific function
+        return { error: `Failed to fetch users: ${error.message}` };
+    }
+}
+
+
 export async function getAdminPanelData(): Promise<AdminPanelDataResponse> {
     try {
         // 1. Fetch all users from Firebase Auth
@@ -36,11 +65,6 @@ export async function getAdminPanelData(): Promise<AdminPanelDataResponse> {
         
         // 3. Fetch all properties
         const propertiesSnapshot = await adminDb.ref('properties').get();
-        let properties: Property[] = [];
-        if (propertiesSnapshot.exists()) {
-            const data = propertiesSnapshot.val();
-            properties = Object.values(data as Record<string, Property>).sort((a, b) => (b.createdAt as number || 0) - (a.createdAt as number || 0));
-        }
 
         // 4. Combine Auth and DB user data
         const combinedUsers: UserRecord[] = authUsers.map(authUser => {
@@ -56,14 +80,24 @@ export async function getAdminPanelData(): Promise<AdminPanelDataResponse> {
             };
         });
 
+        let properties: Property[] = [];
+        if (propertiesSnapshot.exists()) {
+            const data = propertiesSnapshot.val();
+            properties = Object.values(data as Record<string, Property>).sort((a, b) => (b.createdAt as number || 0) - (a.createdAt as number || 0));
+        }
+
         return { users: combinedUsers, properties };
 
     } catch (error: any) {
         console.error("ERRO CRÍTICO em getAdminPanelData:", error);
-        
-        // Return the raw error message to help diagnose the issue.
+        if (error.code === 'auth/invalid-credential' || error.code === 'app/invalid-credential' || error.code === 'auth/internal-error') {
+             return { users: [], properties: [], error: "A credencial da conta de serviço do Firebase é inválida ou não está configurada corretamente. Verifique as configurações de permissão no Google Cloud IAM." };
+        }
+        if (error.code === 'permission-denied' || error.code === 'auth/insufficient-permission') {
+            return { users: [], properties: [], error: "Permissão negada. A conta de serviço precisa da permissão 'Firebase Authentication Admin'. Por favor, adicione-a no painel do Google Cloud IAM." };
+        }
+        // Return a more generic but informative error for other cases
         const detailedError = `Ocorreu um erro ao buscar dados para o painel de administração. Mensagem: ${error.message} (Código: ${error.code || 'N/A'})`;
-        
         return { users: [], properties: [], error: detailedError };
     }
 }

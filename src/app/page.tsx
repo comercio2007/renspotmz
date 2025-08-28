@@ -70,7 +70,7 @@ export default function Home() {
 
   useEffect(() => {
     // Reset filters when listing type changes
-    handleResetFilters(false);
+    handleResetFilters();
     setPriceRange(priceConfig.defaultRange);
     setAppliedFilters(prev => ({ ...prev, priceRange: priceConfig.defaultRange }));
   }, [listingType, priceConfig]);
@@ -137,11 +137,8 @@ export default function Home() {
       setAppliedFilters(currentFilters);
   }
 
-  const handleResetFilters = (resetAll = true) => {
-      if(isFilterDisabled && resetAll) {
-        router.push('/login');
-        return;
-      }
+  const handleResetFilters = () => {
+      if(isFilterDisabled) return;
       setCurrentPage(1);
       setSearchQuery(defaultFilters.searchQuery);
       setPriceRange(priceConfig.defaultRange);
@@ -348,7 +345,7 @@ export default function Home() {
                          </Button>
                        )}
                        {areFiltersApplied && !isFilterDisabled && (
-                        <Button onClick={() => handleResetFilters(true)} variant="outline">
+                        <Button onClick={handleResetFilters} variant="outline">
                             <X className="mr-2 h-4 w-4" />
                             Remover Filtros
                         </Button>
@@ -362,10 +359,12 @@ export default function Home() {
 
               {/* Lista de Imóveis */}
               <main className="md:col-span-3">
-                 <h2 className="text-3xl font-bold mb-8">
-                   {!areFiltersApplied ? `Imóveis ${listingType === 'Para Alugar' ? 'para Alugar' : 'à Venda'}` : 'Resultados da Pesquisa'}
-                   <span className="text-lg font-normal text-muted-foreground ml-2">({filteredProperties.length} encontrados)</span>
-                 </h2>
+                 <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-3xl font-bold">
+                    {!areFiltersApplied ? `Imóveis ${listingType === 'Para Alugar' ? 'para Alugar' : 'à Venda'}` : 'Resultados da Pesquisa'}
+                    <span className="text-lg font-normal text-muted-foreground ml-2">({filteredProperties.length} encontrados)</span>
+                    </h2>
+                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
                   {loading ? (
                     <>
@@ -380,7 +379,14 @@ export default function Home() {
                       ))}
                     </>
                   ) : displayedProperties.length > 0 ? displayedProperties.map((property) => (
-                    <PropertyCard key={property.id} property={property} />
+                      <Link href={`/property/${property.id}`} key={property.id} onClick={(e) => {
+                        if (isFilterDisabled) {
+                          e.preventDefault();
+                          router.push('/login');
+                        }
+                      }}>
+                          <PropertyCard property={property} />
+                      </Link>
                   )) : (
                     <div className="col-span-full text-center py-16">
                       <p className="text-muted-foreground">Nenhum imóvel encontrado com os filtros selecionados.</p>

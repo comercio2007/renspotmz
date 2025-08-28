@@ -1,3 +1,4 @@
+
 "use client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,11 +9,13 @@ import { useToast } from "@/hooks/use-toast"
 import { getAuth, updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from "firebase/auth"
 import { useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
+import { useLoading } from "@/contexts/loading-context"
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const auth = getAuth();
+  const { setIsLoading } = useLoading();
 
   // Profile states
   const [name, setName] = useState("");
@@ -37,6 +40,7 @@ export default function SettingsPage() {
     if (!user) return;
 
     setNameLoading(true);
+    setIsLoading(true);
     try {
       await updateProfile(user, { displayName: name });
       toast({
@@ -51,6 +55,7 @@ export default function SettingsPage() {
       });
     } finally {
       setNameLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -68,6 +73,7 @@ export default function SettingsPage() {
     }
 
     setPasswordLoading(true);
+    setIsLoading(true);
     try {
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
@@ -95,6 +101,7 @@ export default function SettingsPage() {
       });
     } finally {
       setPasswordLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -149,3 +156,5 @@ export default function SettingsPage() {
     </div>
   )
 }
+
+    

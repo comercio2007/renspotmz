@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Home } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { Home } from "lucide-react";
+import { useLoading } from "@/contexts/loading-context";
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -30,6 +32,7 @@ export default function SignupPage() {
   const router = useRouter()
   const { toast } = useToast()
   const auth = getAuth(app);
+  const { setIsLoading } = useLoading();
 
   // Function to create a user record in RTDB
   const createUserInDb = (uid: string, email: string, name: string) => {
@@ -44,6 +47,7 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       if (userCredential.user) {
@@ -64,11 +68,13 @@ export default function SignupPage() {
       })
     } finally {
       setLoading(false);
+      setIsLoading(false);
     }
   }
   
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setIsLoading(true);
     try {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
@@ -90,6 +96,7 @@ export default function SignupPage() {
         });
     } finally {
         setLoading(false);
+        setIsLoading(false);
     }
   }
 
@@ -149,3 +156,5 @@ export default function SignupPage() {
     </div>
   )
 }
+
+    

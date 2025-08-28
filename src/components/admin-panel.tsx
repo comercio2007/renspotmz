@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { rtdb } from "@/lib/firebase";
-import { ref, onValue, query, orderByChild, remove } from "firebase/database";
+import { ref, onValue, off, remove } from "firebase/database";
 import type { Property } from "@/lib/placeholder-data";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
@@ -35,11 +35,10 @@ import {
   DialogClose,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { deleteUser, type UserRecord, toggleUserStatus, updateUserPropertyLimit } from "@/actions/user.actions";
+import { deleteUser, type UserRecord, toggleUserStatus, updateUserPropertyLimit, getUsers } from "@/actions/user.actions";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { UserStats } from "./user-stats";
-import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Label } from "./ui/label";
 import { useLoading } from "@/contexts/loading-context";
@@ -67,6 +66,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
   const [isClient, setIsClient] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [newLimit, setNewLimit] = useState<number>(1);
+  const [realtimeError, setRealtimeError] = useState<string | undefined>(usersError);
 
   useEffect(() => {
     setIsClient(true);
@@ -78,13 +78,45 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
     }
   }, [isAdmin, authLoading, router]);
 
+  // Real-time listener for users
   useEffect(() => {
-    setUsers(initialUsers);
-  }, [initialUsers]);
-  
-  useEffect(() => {
-    setProperties(initialProperties);
-  }, [initialProperties]);
+    if (!isAdmin) return;
+
+    // A server action to periodically re-fetch the full user list from Auth
+    // This is a workaround because there's no real-time listener for Firebase Auth users.
+    // We check every 30 seconds for new sign-ups.
+    const fetchLatestUsers = async () => {
+        const { users: latestUsers, error } = await getUsers();
+        if (latestUsers) {
+            setUsers(latestUsers);
+            setRealtimeError(undefined); // Clear previous errors if successful
+        } else if (error) {
+            setRealtimeError(error);
+        }
+    };
+    
+    // Fetch immediately on component mount
+    fetchLatestUsers(); 
+
+    const interval = setInterval(fetchLatestUsers, 30000); // 30 seconds
+    
+    // Real-time listener for properties
+    const propertiesRef = ref(rtdb, 'properties');
+    const propertiesUnsubscribe = onValue(propertiesRef, (snapshot) => {
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            const propertyList: Property[] = Object.values(data as Record<string, Property>).sort((a: any, b: any) => b.createdAt - a.createdAt);
+            setProperties(propertyList);
+        } else {
+            setProperties([]);
+        }
+    });
+
+    return () => {
+      clearInterval(interval);
+      off(propertiesRef); // Detach the properties listener
+    };
+  }, [isAdmin]);
 
   const filteredProperties = useMemo(() => {
     if (!propertySearchTerm) return properties;
@@ -107,7 +139,6 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
     startTransition(async () => {
         try {
             await remove(ref(rtdb, `properties/${propertyId}`));
-            setProperties(prev => prev.filter(p => p.id !== propertyId));
             toast({
                 title: "Sucesso!",
                 description: "O imóvel foi excluído."
@@ -133,13 +164,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
         description: result.message,
         variant: result.success ? "default" : "destructive",
       });
-      if (result.success) {
-        setUsers(prevUsers =>
-          prevUsers.map(u =>
-            u.uid === uid ? { ...u, disabled: result.newStatus } : u
-          )
-        );
-      }
+      // The real-time listener will update the UI automatically
       setIsLoading(false);
     });
   }
@@ -148,14 +173,12 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
     setIsLoading(true);
     startTransition(async () => {
         const result = await deleteUser(uid);
-        if (result.success) {
-            setUsers(prevUsers => prevUsers.filter(u => u.uid !== uid));
-        }
         toast({
             title: result.success ? "Sucesso!" : "Erro",
             description: result.message,
             variant: result.success ? "default" : "destructive",
         })
+        // The real-time listener will update the UI automatically
         setIsLoading(false);
     })
   }
@@ -177,7 +200,7 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
             variant: result.success ? "default" : "destructive",
         });
         if (result.success) {
-            setUsers(prev => prev.map(u => u.uid === editingUser.uid ? {...u, propertyLimit: newLimit} : u));
+            // The real-time listener will update the UI automatically
             setEditingUser(null);
         }
         setIsLoading(false);
@@ -185,12 +208,8 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
   }
 
   // This check is important to avoid rendering anything for non-admins or during initial auth load
-  if (authLoading) {
+  if (authLoading || !isAdmin) {
       return null;
-  }
-
-  if (!isAdmin) {
-    return null; 
   }
 
   if (selectedProperty) {
@@ -235,19 +254,19 @@ export function AdminPanel({ initialUsers, initialProperties, usersError }: Admi
           </div>
         </CardHeader>
         <CardContent>
-           {usersError ? (
+           {realtimeError ? (
                <Alert variant="destructive" className="mb-6">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Erro de Configuração</AlertTitle>
+                    <AlertTitle>Erro de Configuração ou Sincronização</AlertTitle>
                     <AlertDescription>
-                       {usersError}
+                       {realtimeError}
                     </AlertDescription>
                 </Alert>
             ) : <UserStats users={users} />}
             <Tabs defaultValue="properties" className="mt-6">
                 <TabsList>
                     <TabsTrigger value="properties">Imóveis ({properties.length})</TabsTrigger>
-                    <TabsTrigger value="users" disabled={!!usersError}>Usuários ({users.length})</TabsTrigger>
+                    <TabsTrigger value="users" disabled={!!realtimeError}>Usuários ({users.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="properties">
                     <div className="flex flex-col sm:flex-row items-center gap-4 my-4">
