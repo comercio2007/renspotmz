@@ -2,9 +2,19 @@
 "use client";
 import { useLoading } from "@/contexts/loading-context";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function GlobalLoader() {
   const { isLoading } = useLoading();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div
