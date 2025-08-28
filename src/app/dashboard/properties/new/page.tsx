@@ -26,7 +26,7 @@ const amenitiesList = [
 ]
 
 const MAX_IMAGES = 8;
-const MIN_DESCRIPTION_LENGTH = 90;
+const MIN_DESCRIPTION_LENGTH = 27;
 
 type ImageUpload = {
   file: File;
@@ -243,7 +243,7 @@ export default function NewPropertyPage() {
           <form className="grid gap-6" onSubmit={handleSubmit}>
             <div className="grid gap-3">
               <Label htmlFor="title">Título do Imóvel</Label>
-              <Input id="title" name="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full" placeholder="ex: Apartamento Moderno no Centro da Cidade" required />
+              <Input id="title" name="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full" placeholder="ex: Apartamento Moderno no Centro da Cidade" required maxLength={27} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
