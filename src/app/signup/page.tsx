@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Home } from "lucide-react";
 import { useLoading } from "@/contexts/loading-context";
+import { trackFbEvent } from "@/components/facebook-pixel";
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -54,6 +55,7 @@ export default function SignupPage() {
         await updateProfile(userCredential.user, { displayName: name });
         // Create user record in Realtime Database
         await createUserInDb(userCredential.user.uid, email, name);
+        trackFbEvent('CompleteRegistration');
         router.push('/');
       }
     } catch (error: any) {
@@ -85,6 +87,9 @@ export default function SignupPage() {
         if (!snapshot.exists()) {
              // Create user record in Realtime Database on first Google sign-in
             await createUserInDb(user.uid, user.email!, user.displayName!);
+            trackFbEvent('CompleteRegistration');
+        } else {
+            trackFbEvent('Login');
         }
         
         router.push('/');
@@ -156,5 +161,3 @@ export default function SignupPage() {
     </div>
   )
 }
-
-    
