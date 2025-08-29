@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { LoadingProvider } from '@/contexts/loading-context'
 import { SplashScreen } from '@/components/splash-screen'
 import { GlobalLoader } from '@/components/global-loader'
+import FacebookPixel from '@/components/facebook-pixel'
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.React.Node
 }) {
   return (
     <html lang="pt" suppressHydrationWarning>
@@ -48,6 +49,7 @@ export default function RootLayout({
                 <GlobalLoader />
             </LoadingProvider>
         </AuthProvider>
+        <FacebookPixel />
       </body>
     </html>
   )
