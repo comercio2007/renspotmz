@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
-export const FB_PIXEL_ID = "758691667021231";
+export const FB_PIXEL_ID = "1918175709031268";
 
 declare global {
     interface Window {
