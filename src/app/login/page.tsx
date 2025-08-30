@@ -61,9 +61,6 @@ export default function LoginPage() {
         case 'auth/invalid-credential':
           description = "E-mail ou senha incorretos. Verifique suas credenciais.";
           break;
-        case 'auth/invalid-email':
-          description = "O formato do e-mail é inválido.";
-          break;
         case 'auth/user-disabled':
           description = "Sua conta foi desativada. Por favor, entre em contato com o suporte.";
           break;
