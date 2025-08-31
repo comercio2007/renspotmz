@@ -41,7 +41,7 @@ export default function SignupPage() {
       email,
       name,
       disabled: false, // Start as active
-      propertyLimit: 1, // Default property limit
+      propertyLimit: 10, // Default property limit
     });
   }
 
