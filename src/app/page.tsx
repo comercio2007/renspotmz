@@ -270,7 +270,7 @@ export default function Home() {
               Encontre o seu Imóvel Perfeito
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Descubra os melhores imóveis para alugar ou comprar na sua cidade. A sua próxima casa está a apenas um clique de distância.
+              Descubra os melhores imóveis para alugar ou comprar na sua cidade. A sua próxima casa está apenas a um clique de distância.
             </p>
             <div className="max-w-4xl mx-auto bg-background p-4 rounded-lg shadow-lg flex flex-col md:flex-row items-center gap-4">
               <div className="relative w-full">
