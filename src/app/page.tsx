@@ -52,7 +52,6 @@ const defaultFiltersSale = {
 };
 
 const PROPERTIES_PER_PAGE = 6;
-const PREVIEW_PROPERTIES_LIMIT = 4;
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -252,13 +251,10 @@ export default function Home() {
   const totalPages = Math.ceil(filteredProperties.length / PROPERTIES_PER_PAGE);
 
   const displayedProperties = useMemo(() => {
-    if (isFilterDisabled) {
-      return filteredProperties.slice(0, PREVIEW_PROPERTIES_LIMIT);
-    }
     const startIndex = (currentPage - 1) * PROPERTIES_PER_PAGE;
     const endIndex = startIndex + PROPERTIES_PER_PAGE;
     return filteredProperties.slice(startIndex, endIndex);
-  }, [filteredProperties, currentPage, isFilterDisabled]);
+  }, [filteredProperties, currentPage]);
 
   return (
     <>
@@ -270,7 +266,7 @@ export default function Home() {
               Encontre o seu Imóvel Perfeito
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Descubra os melhores imóveis para alugar ou comprar na sua cidade. A sua próxima casa está apenas a um clique de distância.
+              Descubra os melhores imóveis para alugar ou comprar na sua cidade. A sua próxima casa está a apenas um clique de distância.
             </p>
             <div className="max-w-4xl mx-auto bg-background p-4 rounded-lg shadow-lg flex flex-col md:flex-row items-center gap-4">
               <div className="relative w-full">
@@ -474,12 +470,7 @@ export default function Home() {
                       ))}
                     </>
                   ) : displayedProperties.length > 0 ? displayedProperties.map((property) => (
-                      <Link href={`/property/${property.id}`} key={property.id} onClick={(e) => {
-                        if (isFilterDisabled) {
-                          e.preventDefault();
-                          router.push('/login');
-                        }
-                      }}>
+                      <Link href={`/property/${property.id}`} key={property.id}>
                           <PropertyCard property={property} />
                       </Link>
                   )) : (
@@ -488,7 +479,7 @@ export default function Home() {
                       </div>
                   )}
                 </div>
-                {!loading && !isFilterDisabled && totalPages > 1 && (
+                {!loading && totalPages > 1 && (
                   <Pagination className="mt-12">
                     <PaginationContent>
                       <PaginationItem>
@@ -518,14 +509,6 @@ export default function Home() {
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                )}
-                 {isFilterDisabled && filteredProperties.length > PREVIEW_PROPERTIES_LIMIT && (
-                    <div className="mt-12 text-center">
-                        <p className="text-muted-foreground mb-4">Mostrando {PREVIEW_PROPERTIES_LIMIT} de {filteredProperties.length} imóveis.</p>
-                        <Button asChild>
-                            <Link href="/login">Faça login para ver todos</Link>
-                        </Button>
-                    </div>
                 )}
               </main>
             </div>
