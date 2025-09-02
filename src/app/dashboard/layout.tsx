@@ -87,6 +87,7 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 asChild
                 isActive={pathname === "/"}
                 tooltip="Voltar ao Início"
+                className="text-lg"
               >
                 <Link href="/">
                   <Home />
@@ -99,6 +100,7 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 asChild
                 isActive={pathname === "/dashboard"}
                 tooltip="Painel Principal"
+                className="text-lg"
               >
                 <Link href="/dashboard">
                   <LayoutDashboard />
@@ -111,6 +113,7 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 asChild
                 isActive={pathname === "/dashboard/properties/new"}
                 tooltip="Adicionar Novo Imóvel"
+                className="text-lg"
               >
                 <Link href="/dashboard/properties/new">
                   <PlusCircle />
@@ -118,15 +121,12 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
+             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={pathname === "/dashboard/settings"}
                 tooltip="Configurações da Conta"
+                className="text-lg"
               >
                 <Link href="/dashboard/settings">
                   <Settings />
@@ -135,12 +135,15 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip="Sair da Conta">
+              <SidebarMenuButton onClick={handleLogout} tooltip="Sair da Conta" className="text-lg">
                 <LogOut />
                 <span>Sair</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          {/* Footer content can be added here if needed in the future */}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
