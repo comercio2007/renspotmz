@@ -12,7 +12,7 @@ import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 
-const NavLink = ({ href, children, onClick }: { href?: string, children: React.React.Node, onClick?: () => void }) => {
+const NavLink = ({ href, children, onClick }: { href?: string, children: React.ReactNode, onClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = href && pathname === href;
 
@@ -68,7 +68,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-            <div className="hidden md:flex items-center gap-2">
+            <div className="flex items-center gap-2">
                 <Button asChild variant="default" size="sm">
                     <Link href={user ? "/dashboard/properties/new" : "/login"}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -76,12 +76,14 @@ export function Header() {
                     </Link>
                 </Button>
                 {loading ? (
-                    <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
+                    <div className="h-9 w-24 bg-muted rounded-md animate-pulse md:flex" />
                 ) : user ? (
-                    <UserNav />
+                    <div className="hidden md:flex">
+                        <UserNav />
+                    </div>
                 ) : (
                     <>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden md:flex">
                         <Link href="/signup">Inscrever-se</Link>
                     </Button>
                     </>
