@@ -7,7 +7,6 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { LoadingProvider } from '@/contexts/loading-context'
 import { SplashScreen } from '@/components/splash-screen'
 import { GlobalLoader } from '@/components/global-loader'
-import FacebookPixel from '@/components/facebook-pixel'
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -49,7 +48,7 @@ export default function RootLayout({
                 <GlobalLoader />
             </LoadingProvider>
         </AuthProvider>
-        <FacebookPixel />
+        
       </body>
     </html>
   )
