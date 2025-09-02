@@ -456,7 +456,7 @@ export default function Home() {
                     <span className="text-lg font-normal text-muted-foreground ml-2">({filteredProperties.length} encontrados)</span>
                     </h2>
                  </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
                   {loading ? (
                     <>
                       {Array.from({ length: PROPERTIES_PER_PAGE }).map((_, i) => (
