@@ -65,10 +65,6 @@ export function Header() {
                 <Home className="h-8 w-8 text-primary" />
                 <span className="hidden sm:inline-block font-bold text-xl font-headline">RentSpot</span>
             </Link>
-             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-                <Link href="/" className="transition-colors hover:text-primary">Início</Link>
-                <Link href="/about" className="transition-colors hover:text-primary">Sobre Nós</Link>
-            </nav>
         </div>
 
         <div className="flex items-center gap-2">
@@ -86,16 +82,19 @@ export function Header() {
                         <UserNav />
                     </div>
                 ) : (
-                    <>
-                    <Button asChild size="sm" className="hidden md:flex">
-                        <Link href="/signup">Inscrever-se</Link>
-                    </Button>
-                    </>
+                    <div className="hidden md:flex items-center gap-2">
+                        <Button asChild size="sm" variant="outline">
+                            <Link href="/login">Login</Link>
+                        </Button>
+                        <Button asChild size="sm">
+                            <Link href="/signup">Inscrever-se</Link>
+                        </Button>
+                    </div>
                 )}
             </div>
              <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" className="md:hidden">
+                    <Button variant="outline" size="icon">
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Abrir menu</span>
                     </Button>
