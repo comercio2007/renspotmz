@@ -57,21 +57,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribeAuth();
-  }, [auth, router]);
+  }, [auth]);
 
   // Separate effect for real-time listeners on user data (like propertyLimit)
   useEffect(() => {
+    let unsubscribeDb: () => void = () => {};
     if (user) {
       const userRef = ref(rtdb, `users/${user.uid}`);
-      const unsubscribeDb = onValue(userRef, (snapshot) => {
+      unsubscribeDb = onValue(userRef, (snapshot) => {
         if (snapshot.exists()) {
           const userData = snapshot.val();
           // This ensures the property limit is updated in real-time if changed by an admin
           setPropertyLimit(userData?.propertyLimit ?? 1);
         }
       });
-      return () => unsubscribeDb();
     }
+    return () => unsubscribeDb();
   }, [user]);
 
 
