@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard } from "lucide-react"
+import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getAuth, signOut } from "firebase/auth"
 import {
@@ -108,6 +108,21 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            {isAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/dashboard/admin"}
+                  tooltip="Painel de Admin"
+                  className="text-lg"
+                >
+                  <Link href="/dashboard/admin">
+                    <Shield />
+                    <span>Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
