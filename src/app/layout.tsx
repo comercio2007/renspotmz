@@ -7,7 +7,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { LoadingProvider } from '@/contexts/loading-context'
 import { SplashScreen } from '@/components/splash-screen'
 import { GlobalLoader } from '@/components/global-loader'
-import { PwaInstallBanner } from '@/components/pwa-install-banner'
+import { PwaInstallProvider } from '@/components/pwa-install-provider'
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -43,11 +43,12 @@ export default function RootLayout({
       <body className={`${ptSans.variable} ${playfairDisplay.variable} font-body flex flex-col min-h-screen`}>
         <AuthProvider>
             <LoadingProvider>
+              <PwaInstallProvider>
                 <SplashScreen />
                 {children}
                 <Toaster />
                 <GlobalLoader />
-                <PwaInstallBanner />
+              </PwaInstallProvider>
             </LoadingProvider>
         </AuthProvider>
         
