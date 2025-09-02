@@ -1,16 +1,11 @@
 
 "use client"
-import {
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Download, CheckCircle, Smartphone } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Download, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -21,23 +16,23 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-export function InstallPWA() {
+export function PwaInstallBanner() {
   const { toast } = useToast()
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      // Do not show the banner if the app is already installed
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+      }
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setIsVisible(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Check if the app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsAppInstalled(true);
-    }
     
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -45,14 +40,7 @@ export function InstallPWA() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      toast({
-        title: "Instalação não disponível",
-        description: "A instalação só pode ser iniciada através de um navegador compatível.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -65,36 +53,36 @@ export function InstallPWA() {
     }
 
     setDeferredPrompt(null);
+    setIsVisible(false);
   };
+  
+  const handleDismiss = () => {
+    setIsVisible(false);
+  }
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <div className="mx-auto bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center mb-4">
-            <Smartphone className="h-8 w-8" />
+     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
+        <div className="bg-background rounded-lg shadow-2xl p-4 border flex items-center gap-4 animate-in slide-in-from-bottom-10 duration-500">
+            <div className="bg-primary text-primary-foreground rounded-full h-12 w-12 flex-shrink-0 flex items-center justify-center">
+                <span className="font-headline font-bold text-2xl">R</span>
+            </div>
+            <div className="flex-grow">
+                <p className="font-bold">Instalar a Aplicação</p>
+                <p className="text-sm text-muted-foreground">Adicione ao ecrã principal para uma experiência mais rápida.</p>
+            </div>
+            <Button size="sm" onClick={handleInstallClick}>
+                <Download className="mr-2 h-4 w-4"/>
+                Instalar
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={handleDismiss}>
+                <X className="h-4 w-4"/>
+                <span className="sr-only">Fechar</span>
+            </Button>
         </div>
-        <DialogTitle className="text-center text-2xl font-headline">Instalar RentSpot</DialogTitle>
-        <DialogDescription className="text-center">
-          Adicione o RentSpot ao seu ecrã principal para um acesso mais rápido e uma experiência semelhante a uma aplicação.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        {isAppInstalled ? (
-          <div className="w-full text-center text-green-600 flex items-center justify-center">
-            <CheckCircle className="mr-2 h-5 w-5" />
-            <span>Aplicação já instalada!</span>
-          </div>
-        ) : deferredPrompt ? (
-          <Button type="button" className="w-full" onClick={handleInstallClick}>
-            <Download className="mr-2 h-5 w-5" />
-            Instalar Aplicação
-          </Button>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center w-full">
-            O seu navegador não suporta a instalação ou a aplicação já está instalada.
-          </p>
-        )}
-      </DialogFooter>
-    </DialogContent>
+     </div>
   )
 }
