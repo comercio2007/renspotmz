@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
+import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield, Share2 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { DialogTrigger } from './ui/dialog';
 
 
 const NavLink = ({ href, children, onClick }: { href?: string, children: React.React.Node, onClick?: () => void }) => {
@@ -77,11 +78,7 @@ export function Header() {
                 </Button>
                 {loading ? (
                     <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
-                ) : user ? (
-                    <div className="md:flex">
-                        <UserNav />
-                    </div>
-                ) : (
+                ) : !user && (
                     <div className="items-center gap-2 md:flex">
                         <Button asChild size="sm" variant="outline">
                             <Link href="/login">Login</Link>
@@ -92,7 +89,8 @@ export function Header() {
                     </div>
                 )}
             </div>
-             <Sheet>
+            {loading ? null : user && <UserNav />}
+            <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon">
                         <Menu className="h-5 w-5" />
@@ -134,6 +132,12 @@ export function Header() {
                                     Configurações
                                 </NavLink>
                                 <div className="pt-4 mt-4 border-t">
+                                    <DialogTrigger asChild>
+                                         <div className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer">
+                                            <Share2 className="h-6 w-6" />
+                                            Partilhar
+                                        </div>
+                                    </DialogTrigger>
                                     <NavLink onClick={handleLogout}>
                                         <LogOut className="h-6 w-6" />
                                         Sair
@@ -150,6 +154,14 @@ export function Header() {
                                     <UserPlus className="h-6 w-6" />
                                     Inscrever-se
                                 </NavLink>
+                                <div className="pt-4 mt-4 border-t">
+                                     <DialogTrigger asChild>
+                                         <div className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer">
+                                            <Share2 className="h-6 w-6" />
+                                            Partilhar
+                                        </div>
+                                    </DialogTrigger>
+                                </div>
                             </>
                         )}
                     </nav>
