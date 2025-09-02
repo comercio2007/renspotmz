@@ -11,27 +11,28 @@ import { InstallPWA } from "./install-pwa"
 import { cn } from "@/lib/utils"
 
 export function PwaInstallFAB() {
-  const { deferredPrompt, isAppInstalled } = usePwaInstall();
+  const { deferredPrompt, isAppInstalled, handleInstallClick } = usePwaInstall();
  
   if (isAppInstalled || !deferredPrompt) {
     return null;
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          size="icon"
-          className={cn(
-            "fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl animate-in fade-in zoom-in-50 duration-500",
-            "lg:h-16 lg:w-16"
-          )}
-        >
-          <Download className="h-6 w-6 lg:h-7 lg:w-7" />
-          <span className="sr-only">Instalar a Aplicação</span>
-        </Button>
-      </DialogTrigger>
-      <InstallPWA />
-    </Dialog>
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in fade-in slide-in-from-bottom-10 duration-500">
+        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg shadow-2xl flex items-center justify-between gap-4 border">
+            <div className="flex items-center gap-3">
+                <div className="bg-primary text-primary-foreground rounded-full h-10 w-10 flex items-center justify-center shrink-0">
+                    <Download className="h-5 w-5" />
+                </div>
+                <div>
+                    <p className="font-semibold">Instalar a Aplicação</p>
+                    <p className="text-sm text-muted-foreground">Aceda mais rápido e offline.</p>
+                </div>
+            </div>
+            <Button onClick={handleInstallClick} className="shrink-0">
+                Instalar
+            </Button>
+        </div>
+    </div>
   );
 }
