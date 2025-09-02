@@ -28,10 +28,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             className="w-full h-48 object-cover"
             data-ai-hint="house exterior"
           />
-           <Badge className="absolute top-2 left-2" variant={property.listingType === 'Para Venda' ? 'default' : 'secondary'}>
-            {property.listingType}
-          </Badge>
-          <Badge className="absolute top-2 right-2" variant={'outline'}>
+          <Badge className="absolute top-2 left-2" variant={['Alugado', 'Vendido'].includes(property.status) ? 'destructive' : 'outline'}>
             {property.status}
           </Badge>
         </CardHeader>
