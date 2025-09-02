@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut } from 'lucide-react';
+import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
@@ -20,7 +20,7 @@ const NavLink = ({ href, children, onClick }: { href?: string, children: React.R
          <div
             onClick={onClick}
             className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors",
+                "flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base",
                 isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
                 !href && "cursor-pointer"
             )}
@@ -48,7 +48,7 @@ const NavLink = ({ href, children, onClick }: { href?: string, children: React.R
 
 
 export function Header() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const auth = getAuth();
   const router = useRouter();
 
@@ -78,15 +78,15 @@ export function Header() {
                 {loading ? (
                     <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
                 ) : user ? (
-                    <div className="hidden md:flex">
+                    <div className="md:flex">
                         <UserNav />
                     </div>
                 ) : (
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="items-center gap-2 md:flex">
                         <Button asChild size="sm" variant="outline">
                             <Link href="/login">Login</Link>
                         </Button>
-                        <Button asChild size="sm">
+                        <Button asChild size="sm" className="hidden md:inline-flex">
                             <Link href="/signup">Inscrever-se</Link>
                         </Button>
                     </div>
@@ -119,6 +119,12 @@ export function Header() {
                                     <LayoutDashboard className="h-6 w-6" />
                                     Painel
                                 </NavLink>
+                                {isAdmin && (
+                                    <NavLink href="/dashboard/admin">
+                                        <Shield className="h-6 w-6" />
+                                        Admin
+                                    </NavLink>
+                                )}
                                 <NavLink href="/dashboard/properties/new">
                                     <PlusCircle className="h-6 w-6" />
                                     Novo Imóvel
