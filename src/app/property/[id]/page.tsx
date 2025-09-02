@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { useLoading } from "@/contexts/loading-context";
 
 
 export default function PropertyPage() {
@@ -34,6 +35,7 @@ export default function PropertyPage() {
   const propertyId = params.id as string;
   const pathname = usePathname();
   const { toast } = useToast();
+  const { setIsLoading } = useLoading();
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,6 +93,8 @@ export default function PropertyPage() {
   useEffect(() => {
     const fetchProperty = async () => {
       if (!propertyId) return;
+      setIsLoading(true); // Start global loader
+      setLoading(true); // Start skeleton loader
       try {
         const propertyRef = ref(rtdb, `properties/${propertyId}`);
         const snapshot = await get(propertyRef);
@@ -103,12 +107,13 @@ export default function PropertyPage() {
         console.error("Error fetching property", error);
         setProperty(null);
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop skeleton loader
+        setIsLoading(false); // Stop global loader
       }
     };
 
     fetchProperty();
-  }, [propertyId]);
+  }, [propertyId, setIsLoading]);
 
   if (loading) {
     return (
