@@ -12,7 +12,7 @@ import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 
-const NavLink = ({ href, children, onClick }: { href?: string, children: React.ReactNode, onClick?: () => void }) => {
+const NavLink = ({ href, children, onClick }: { href?: string, children: React.React.Node, onClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = href && pathname === href;
 
@@ -20,7 +20,7 @@ const NavLink = ({ href, children, onClick }: { href?: string, children: React.R
          <div
             onClick={onClick}
             className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-lg text-lg font-medium transition-colors",
+                "flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors",
                 isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
                 !href && "cursor-pointer"
             )}
@@ -65,6 +65,10 @@ export function Header() {
                 <Home className="h-8 w-8 text-primary" />
                 <span className="hidden sm:inline-block font-bold text-xl font-headline">RentSpot</span>
             </Link>
+             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+                <Link href="/" className="transition-colors hover:text-primary">Início</Link>
+                <Link href="/about" className="transition-colors hover:text-primary">Sobre Nós</Link>
+            </nav>
         </div>
 
         <div className="flex items-center gap-2">
@@ -76,7 +80,7 @@ export function Header() {
                     </Link>
                 </Button>
                 {loading ? (
-                    <div className="h-9 w-24 bg-muted rounded-md animate-pulse md:flex" />
+                    <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
                 ) : user ? (
                     <div className="hidden md:flex">
                         <UserNav />
