@@ -72,7 +72,6 @@ export default function Home() {
   const [appliedFilters, setAppliedFilters] = useState(defaultFiltersRent);
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isFilterDisabled, setIsFilterDisabled] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Separate state for the input fields to allow temporary empty values
@@ -115,10 +114,7 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    if (!authLoading) {
-      setIsFilterDisabled(!user);
-    }
-  }, [user, authLoading]);
+  }, []);
   
   useEffect(() => {
     setLoading(true);
@@ -138,10 +134,6 @@ export default function Home() {
   }, []);
   
   const handleAmenityChange = (amenity: string) => {
-    if(isFilterDisabled) {
-        router.push('/login');
-        return;
-    }
     setSelectedAmenities(prev => 
       prev.includes(amenity) 
         ? prev.filter(a => a !== amenity) 
@@ -166,17 +158,11 @@ export default function Home() {
   }, [appliedFilters, defaultFilters]);
 
   const handleApplyFilters = () => {
-      if(isFilterDisabled) {
-        router.push('/login');
-        return;
-      }
       setCurrentPage(1);
       setAppliedFilters(currentFilters);
   }
 
   const handleResetFilters = () => {
-      if(isFilterDisabled) return;
-      
       // Reset input states to the defaults for the current listing type
       setSearchQuery(defaultFilters.searchQuery);
       setPriceRange(defaultFilters.priceRange);
@@ -191,18 +177,12 @@ export default function Home() {
   }
 
   const handleManualPriceInputChange = (index: 0 | 1, value: string) => {
-    if (isFilterDisabled) {
-      router.push('/login');
-      return;
-    }
     const newPriceInput = [...priceInput] as [string, string];
     newPriceInput[index] = value;
     setPriceInput(newPriceInput);
   };
 
   const handlePriceInputBlur = (index: 0 | 1) => {
-    if (isFilterDisabled) return;
-
     let value = parseInt(priceInput[index], 10);
     const newPriceRange = [...priceRange] as [number, number];
     
@@ -276,18 +256,7 @@ export default function Home() {
                   placeholder="Pesquise por localização, bairro ou título..." 
                   className="pl-10 h-12 text-base" 
                   value={searchQuery}
-                  onChange={(e) => {
-                      if(isFilterDisabled) {
-                          router.push('/login');
-                          return;
-                      }
-                      setSearchQuery(e.target.value);
-                  }}
-                  onFocus={(e) => {
-                    if(isFilterDisabled) {
-                      router.push('/login');
-                    }
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Button size="lg" className="w-full md:w-auto h-12" onClick={handleApplyFilters}>
@@ -324,17 +293,12 @@ export default function Home() {
                               id="price-range"
                               value={priceRange}
                               onValueChange={(value) => { 
-                                  if(isFilterDisabled) {
-                                      router.push('/login');
-                                      return
-                                  };
                                   setPriceRange(value as [number, number]); 
                               }}
                               max={priceConfig.max}
                               min={priceConfig.min}
                               step={priceConfig.step}
                               className="mt-4"
-                              disabled={isFilterDisabled}
                             />
                             <div className="flex justify-between items-center text-xs text-muted-foreground mt-2 gap-2">
                                 <Input
@@ -343,7 +307,6 @@ export default function Home() {
                                   value={priceInput[0]}
                                   onChange={(e) => handleManualPriceInputChange(0, e.target.value)}
                                   onBlur={() => handlePriceInputBlur(0)}
-                                  disabled={isFilterDisabled}
                                 />
                                 <span className="text-muted-foreground">-</span>
                                 <Input
@@ -352,7 +315,6 @@ export default function Home() {
                                   value={priceInput[1]}
                                   onChange={(e) => handleManualPriceInputChange(1, e.target.value)}
                                   onBlur={() => handlePriceInputBlur(1)}
-                                  disabled={isFilterDisabled}
                                 />
                             </div>
                           </div>
@@ -362,15 +324,10 @@ export default function Home() {
                             <Select 
                                 value={bedrooms} 
                                 onValueChange={(value) => {
-                                    if(isFilterDisabled) {
-                                      router.push('/login');
-                                      return;
-                                    }
                                   setBedrooms(value); 
                                 }}
-                                disabled={isFilterDisabled}
                               >
-                              <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
+                              <SelectTrigger className="w-full mt-2">
                                 <SelectValue placeholder="Qualquer" />
                               </SelectTrigger>
                               <SelectContent>
@@ -388,15 +345,10 @@ export default function Home() {
                             <Select 
                                 value={bathrooms}
                                 onValueChange={(value) => { 
-                                    if(isFilterDisabled) {
-                                      router.push('/login');
-                                      return;
-                                    }
                                     setBathrooms(value); 
                                 }}
-                                disabled={isFilterDisabled}
                               >
-                              <SelectTrigger className="w-full mt-2" onFocus={(e) => {if(isFilterDisabled) router.push('/login')}}>
+                              <SelectTrigger className="w-full mt-2">
                                 <SelectValue placeholder="Qualquer" />
                               </SelectTrigger>
                               <SelectContent>
@@ -417,7 +369,6 @@ export default function Home() {
                                     id={`filter-${amenity}`} 
                                     checked={selectedAmenities.includes(amenity)}
                                     onCheckedChange={() => handleAmenityChange(amenity)}
-                                    disabled={isFilterDisabled}
                                   />
                                   <Label htmlFor={`filter-${amenity}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                     {amenity}
@@ -428,19 +379,18 @@ export default function Home() {
                           </div>
 
                           <div className="flex flex-col gap-2 pt-4 border-t">
-                            {areFiltersChanged && !isFilterDisabled && (
+                            {areFiltersChanged && (
                               <Button onClick={handleApplyFilters}>
                                   <Filter className="mr-2 h-4 w-4" />
                                   Aplicar Filtros
                               </Button>
                             )}
-                            {areFiltersApplied && !isFilterDisabled && (
+                            {areFiltersApplied && (
                               <Button onClick={handleResetFilters} variant="outline">
                                   <X className="mr-2 h-4 w-4" />
                                   Remover Filtros
                               </Button>
                             )}
-                            {isFilterDisabled && <p className="text-xs text-muted-foreground text-center">Faça login para aplicar filtros.</p>}
                           </div>
                         </div>
                       </AccordionContent>
