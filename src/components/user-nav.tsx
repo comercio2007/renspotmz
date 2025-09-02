@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-import { LayoutDashboard, LogOut, Settings, User, Shield } from "lucide-react"
+import { LogOut, Settings, User, Shield } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -57,18 +57,6 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Painel</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configurações</span>
-            </Link>
-          </DropdownMenuItem>
            {isAdmin && (
             <DropdownMenuItem asChild>
               <Link href="/dashboard/admin">
@@ -78,7 +66,6 @@ export function UserNav() {
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>
