@@ -248,8 +248,7 @@ export default function PropertyPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex gap-2 items-center mb-2">
-                        <Badge variant={property.listingType === 'Para Venda' ? 'default' : 'secondary'}>{property.listingType}</Badge>
-                        <Badge variant="outline">{property.status}</Badge>
+                        <Badge variant={['Alugado', 'Vendido'].includes(property.status) ? 'destructive' : 'outline'}>{property.status}</Badge>
                       </div>
                       <CardTitle className="text-3xl lg:text-4xl font-headline mb-2">{property.title}</CardTitle>
                       <div className="flex items-center text-muted-foreground mb-4">
