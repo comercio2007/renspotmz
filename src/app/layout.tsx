@@ -8,6 +8,8 @@ import { LoadingProvider } from '@/contexts/loading-context'
 import { SplashScreen } from '@/components/splash-screen'
 import { GlobalLoader } from '@/components/global-loader'
 import { PwaInstallProvider } from '@/components/pwa-install-provider'
+import { Dialog } from '@/components/ui/dialog'
+import { ShareDialog } from '@/components/share-dialog'
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -44,10 +46,13 @@ export default function RootLayout({
         <AuthProvider>
             <LoadingProvider>
               <PwaInstallProvider>
-                <SplashScreen />
-                {children}
-                <Toaster />
-                <GlobalLoader />
+                <Dialog>
+                    <SplashScreen />
+                    {children}
+                    <Toaster />
+                    <GlobalLoader />
+                    <ShareDialog />
+                </Dialog>
               </PwaInstallProvider>
             </LoadingProvider>
         </AuthProvider>
