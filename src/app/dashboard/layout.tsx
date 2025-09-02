@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard, Shield } from "lucide-react"
+import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard, Shield, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getAuth, signOut } from "firebase/auth"
 import {
@@ -21,6 +21,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 
 function DashboardLayoutContent({ children }: { children: React.React.Node }) {
   const router = useRouter()
@@ -148,6 +149,14 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                   <span>Configurações</span>
                 </Link>
               </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <DialogTrigger asChild>
+                    <SidebarMenuButton tooltip="Partilhar o Site" className="text-lg">
+                        <Share2 />
+                        <span>Partilhar</span>
+                    </SidebarMenuButton>
+                </DialogTrigger>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout} tooltip="Sair da Conta" className="text-lg">
