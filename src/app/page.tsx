@@ -9,7 +9,7 @@ import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Property } from "@/lib/placeholder-data";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, LayoutGrid, List } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -73,6 +73,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterDisabled, setIsFilterDisabled] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Separate state for the input fields to allow temporary empty values
   const [priceInput, setPriceInput] = useState<[string, string]>(['', '']);
@@ -451,12 +452,35 @@ export default function Home() {
               {/* Lista de Imóveis */}
               <main className="md:col-span-3">
                  <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-3xl font-bold">
-                    {!areFiltersApplied ? `Imóveis ${listingType === 'Para Alugar' ? 'para Alugar' : 'à Venda'}` : 'Resultados da Pesquisa'}
-                    <span className="text-lg font-normal text-muted-foreground ml-2">({filteredProperties.length} encontrados)</span>
-                    </h2>
+                    <div>
+                      <h2 className="text-3xl font-bold">
+                      {!areFiltersApplied ? `Imóveis ${listingType === 'Para Alugar' ? 'para Alugar' : 'à Venda'}` : 'Resultados da Pesquisa'}
+                      </h2>
+                      <span className="text-lg font-normal text-muted-foreground">({filteredProperties.length} encontrados)</span>
+                    </div>
+                    {/* View Mode Toggle Buttons */}
+                    <div className="flex md:hidden items-center gap-1 border p-1 rounded-md">
+                        <Button
+                            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                            size="icon"
+                            onClick={() => setViewMode('grid')}
+                        >
+                            <LayoutGrid className="h-5 w-5"/>
+                        </Button>
+                        <Button
+                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                            size="icon"
+                            onClick={() => setViewMode('list')}
+                        >
+                           <List className="h-5 w-5"/>
+                        </Button>
+                    </div>
                  </div>
-                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
+                <div className={cn(
+                  "grid gap-4 md:gap-8",
+                  viewMode === 'grid' ? "grid-cols-2" : "grid-cols-1",
+                  "xl:grid-cols-3"
+                )}>
                   {loading ? (
                     <>
                       {Array.from({ length: PROPERTIES_PER_PAGE }).map((_, i) => (
