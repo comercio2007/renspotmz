@@ -39,7 +39,7 @@ import { ShareDialog } from "@/components/share-dialog"
 import { InstallPWA } from "@/components/install-pwa"
 
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.React.Node }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, loading } = useAuth()
