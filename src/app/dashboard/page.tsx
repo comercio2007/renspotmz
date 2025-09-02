@@ -1,7 +1,7 @@
 
 "use client"
 import Link from 'next/link'
-import { MoreHorizontal, PlusCircle, Edit, Trash2 } from 'lucide-react'
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Share2, Copy, Check, MessageCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -47,6 +47,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger
+} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input'
 
 export default function DashboardPage() {
     const { user, loading: authLoading } = useAuth();
@@ -55,6 +64,27 @@ export default function DashboardPage() {
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
     const [isClient, setIsClient] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [selectedPropertyForShare, setSelectedPropertyForShare] = useState<Property | null>(null);
+
+    const propertyUrl = selectedPropertyForShare ? `https://rentspotmz.site/property/${selectedPropertyForShare.id}` : "";
+    const shareText = selectedPropertyForShare ? `Olá, encontrei este imóvel interessante no RentSpot: "${selectedPropertyForShare.title}". Veja aqui:` : "";
+    const encodedUrl = encodeURIComponent(propertyUrl);
+    const encodedText = encodeURIComponent(shareText);
+    const whatsappLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+    const facebookLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(propertyUrl).then(() => {
+        setCopied(true)
+        toast({
+            title: "Link Copiado!",
+            description: "O link do imóvel foi copiado para a sua área de transferência.",
+        })
+        setTimeout(() => setCopied(false), 2000)
+        })
+    }
+
 
     useEffect(() => {
         setIsClient(true);
@@ -135,143 +165,184 @@ export default function DashboardPage() {
     };
 
   return (
-    <div className="flex flex-col gap-8">
-        <div>
-            <h1 className="text-3xl font-bold font-headline">Bem-vindo de volta, {user?.displayName || 'Usuário'}!</h1>
-            <p className="text-muted-foreground">Aqui está uma lista de seus imóveis para alugar e à venda.</p>
-        </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+    <Dialog onOpenChange={(isOpen) => { if(!isOpen) { setCopied(false); setSelectedPropertyForShare(null) } }}>
+        <div className="flex flex-col gap-8">
             <div>
-              <CardTitle>Seus Imóveis</CardTitle>
-              <CardDescription>
-                Gerencie seus anúncios e veja o status deles.
-              </CardDescription>
+                <h1 className="text-3xl font-bold font-headline">Bem-vindo de volta, {user?.displayName || 'Usuário'}!</h1>
+                <p className="text-muted-foreground">Aqui está uma lista de seus imóveis para alugar e à venda.</p>
             </div>
-            <Button asChild size="sm" className="gap-1">
-              <Link href="/dashboard/properties/new">
-                <PlusCircle className="h-4 w-4" />
-                Adicionar Imóvel
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  <span className="sr-only">Imagem</span>
-                </TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Preço</TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                 Array.from({length: 2}).map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell className="hidden sm:table-cell">
-                             <Skeleton className="h-16 w-16 rounded-md" />
-                        </TableCell>
-                        <TableCell><Skeleton className="h-6 w-40" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                        <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
-                    </TableRow>
-                 ))
-              ) : properties.length > 0 ? (
-                properties.map((property) => (
-                    <TableRow key={property.id}>
-                    <TableCell className="hidden sm:table-cell">
-                        <Image
-                        alt="Imagem do imóvel"
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={(property.images && property.images[0]) ? property.images[0] : 'https://placehold.co/64x64.png'}
-                        width="64"
-                        data-ai-hint="house exterior"
-                        />
-                    </TableCell>
-                    <TableCell className="font-medium">{property.title}</TableCell>
-                    <TableCell>
-                        <Badge variant={property.listingType === 'Para Venda' ? 'default' : 'secondary'}>
-                          {property.listingType}
-                        </Badge>
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant={['Alugado', 'Vendido'].includes(property.status) ? 'destructive' : 'outline'}>
-                        {property.status}
-                        </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                        {isClient ? property.price.toLocaleString() : property.price} MT
-                    </TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                            >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Alternar menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                             <DropdownMenuItem onSelect={() => router.push(`/dashboard/properties/edit/${property.id}`)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusChange(property)}>
-                                {getStatusChangeActionText(property)}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
-                                        <Trash2 className="mr-2 h-4 w-4"/>
-                                        Excluir
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Essa ação não pode ser desfeita. Isso excluirá permanentemente o imóvel.
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>Continuar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
-                    </TableRow>
-                ))
-              ) : (
+        <Card>
+            <CardHeader>
+            <div className="flex items-center justify-between">
+                <div>
+                <CardTitle>Seus Imóveis</CardTitle>
+                <CardDescription>
+                    Gerencie seus anúncios e veja o status deles.
+                </CardDescription>
+                </div>
+                <Button asChild size="sm" className="gap-1">
+                <Link href="/dashboard/properties/new">
+                    <PlusCircle className="h-4 w-4" />
+                    Adicionar Imóvel
+                </Link>
+                </Button>
+            </div>
+            </CardHeader>
+            <CardContent>
+            <Table>
+                <TableHeader>
                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                        Você ainda não publicou nenhum imóvel. <Link href="/dashboard/properties/new" className="text-primary underline">Adicione um agora!</Link>
-                    </TableCell>
+                    <TableHead className="hidden w-[100px] sm:table-cell">
+                    <span className="sr-only">Imagem</span>
+                    </TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Preço</TableHead>
+                    <TableHead>
+                    <span className="sr-only">Ações</span>
+                    </TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+                </TableHeader>
+                <TableBody>
+                {loading ? (
+                    Array.from({length: 2}).map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell className="hidden sm:table-cell">
+                                <Skeleton className="h-16 w-16 rounded-md" />
+                            </TableCell>
+                            <TableCell><Skeleton className="h-6 w-40" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                            <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : properties.length > 0 ? (
+                    properties.map((property) => (
+                        <TableRow key={property.id}>
+                        <TableCell className="hidden sm:table-cell">
+                            <Image
+                            alt="Imagem do imóvel"
+                            className="aspect-square rounded-md object-cover"
+                            height="64"
+                            src={(property.images && property.images[0]) ? property.images[0] : 'https://placehold.co/64x64.png'}
+                            width="64"
+                            data-ai-hint="house exterior"
+                            />
+                        </TableCell>
+                        <TableCell className="font-medium">{property.title}</TableCell>
+                        <TableCell>
+                            <Badge variant={property.listingType === 'Para Venda' ? 'default' : 'secondary'}>
+                            {property.listingType}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant={['Alugado', 'Vendido'].includes(property.status) ? 'destructive' : 'outline'}>
+                            {property.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                            {isClient ? property.price.toLocaleString() : property.price} MT
+                        </TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                                >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Alternar menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                <DropdownMenuItem onSelect={() => router.push(`/dashboard/properties/edit/${property.id}`)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar
+                                </DropdownMenuItem>
+                                <DialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={() => setSelectedPropertyForShare(property)}>
+                                        <Share2 className="mr-2 h-4 w-4" />
+                                        Partilhar
+                                    </DropdownMenuItem>
+                                </DialogTrigger>
+                                <DropdownMenuItem onSelect={() => handleStatusChange(property)}>
+                                    {getStatusChangeActionText(property)}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
+                                            <Trash2 className="mr-2 h-4 w-4"/>
+                                            Excluir
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Essa ação não pode ser desfeita. Isso excluirá permanentemente o imóvel.
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>Continuar</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                            Você ainda não publicou nenhum imóvel. <Link href="/dashboard/properties/new" className="text-primary underline">Adicione um agora!</Link>
+                        </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+            </CardContent>
+        </Card>
+        </div>
+
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Partilhar Imóvel</DialogTitle>
+                <DialogDescription>
+                    Partilhe este imóvel com os seus amigos ou nas redes sociais.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                    <Input id="link" value={propertyUrl} readOnly />
+                    <Button type="button" size="icon" onClick={handleCopyLink}>
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        <span className="sr-only">Copiar Link</span>
+                    </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={whatsappLink} target="_blank">
+                        <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href={facebookLink} target="_blank">
+                        <svg className="mr-2 h-4 w-4" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Facebook</title><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        Facebook
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+        </DialogContent>
+    </Dialog>
   )
 }
+
+    
