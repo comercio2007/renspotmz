@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Upload, XCircle, ImageIcon, Loader2 } from "lucide-react"
+import { Upload, XCircle, ImageIcon, Loader2, Star } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
@@ -19,13 +19,14 @@ import { Progress } from "@/components/ui/progress"
 import { useLoading } from "@/contexts/loading-context"
 import type { Property } from "@/lib/placeholder-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 const amenitiesList = [
   "Ar Condicionado", "Piscina", "Estacionamento", "Aceita Animais",
   "Totalmente Mobilado", "Varanda", "Jardim", "Segurança 24h"
 ]
 
-const MAX_IMAGES = 8;
+const MAX_IMAGES = 10;
 const MIN_DESCRIPTION_LENGTH = 27;
 
 type ImageUpload = {
@@ -53,6 +54,7 @@ export default function NewPropertyPage() {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
 
   const [imageUploads, setImageUploads] = useState<ImageUpload[]>([])
+  const [coverImageIndex, setCoverImageIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,11 +123,25 @@ export default function NewPropertyPage() {
       URL.revokeObjectURL(uploadToRemove.previewUrl);
     }
     setImageUploads(prev => prev.filter((_, i) => i !== index));
+    // Adjust cover image index if necessary
+    if (index === coverImageIndex) {
+        setCoverImageIndex(0); // Reset to first image if cover is removed
+    } else if (index < coverImageIndex) {
+        setCoverImageIndex(prev => prev - 1);
+    }
   }
 
   const uploadImagesToStorage = async (): Promise<string[]> => {
     const uploadedUrls: string[] = [];
-    for (const upload of imageUploads) {
+    
+    // Create a new array that is correctly ordered with the cover image first.
+    const orderedImageUploads = [...imageUploads];
+    if (coverImageIndex > 0 && coverImageIndex < orderedImageUploads.length) {
+        const coverImage = orderedImageUploads.splice(coverImageIndex, 1)[0];
+        orderedImageUploads.unshift(coverImage);
+    }
+
+    for (const upload of orderedImageUploads) {
       const fileStorageRef = storageRef(storage, `properties/${user?.uid}/${Date.now()}_${upload.file.name}`);
       
       try {
@@ -134,7 +150,6 @@ export default function NewPropertyPage() {
         uploadedUrls.push(downloadURL);
       } catch (error) {
         console.error(`Falha ao carregar a imagem ${upload.file.name}:`, error);
-        // Throw a specific error to be caught by handleSubmit
         throw new Error(`Falha ao carregar a imagem ${upload.file.name}. Verifique sua conexão e as regras do Storage.`);
       }
     }
@@ -333,36 +348,53 @@ export default function NewPropertyPage() {
                 </Label>
               </div>
               {imageUploads.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                  {imageUploads.map((upload, index) => (
-                    <div key={index} className="relative aspect-square">
-                      <Image src={upload.previewUrl} alt={`Preview ${index}`} layout="fill" className="rounded-md object-cover" />
-                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                          onClick={() => removeImage(index)}
-                          disabled={isSubmitting}
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
+                <div className="grid gap-3 mt-4">
+                  <Label>Pré-visualização</Label>
+                  <p className="text-sm text-muted-foreground">Clique na estrela para escolher a imagem de capa.</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {imageUploads.map((upload, index) => (
+                      <div key={index} className="relative aspect-square group">
+                        <Image src={upload.previewUrl} alt={`Preview ${index}`} layout="fill" className="rounded-md object-cover" />
+                        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+                            onClick={() => removeImage(index)}
+                            disabled={isSubmitting}
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                           <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "absolute -top-2 -left-2 h-8 w-8 rounded-full z-10 text-white hover:text-yellow-400",
+                              coverImageIndex === index && "text-yellow-400"
+                            )}
+                            onClick={() => setCoverImageIndex(index)}
+                            disabled={isSubmitting}
+                          >
+                            <Star className={cn("h-6 w-6", coverImageIndex === index && "fill-current")} />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                   {imageUploads.length < MAX_IMAGES && (
-                    <Label
-                      htmlFor="dropzone-file"
-                      className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80"
-                    >
-                      <div className="flex flex-col items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        <span className="text-xs text-center text-muted-foreground mt-1">Adicionar mais</span>
-                      </div>
-                      <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handleImageChange} disabled={isSubmitting} />
-                    </Label>
-                  )}
+                    ))}
+                     {imageUploads.length < MAX_IMAGES && (
+                      <Label
+                        htmlFor="dropzone-file"
+                        className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80"
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                          <span className="text-xs text-center text-muted-foreground mt-1">Adicionar mais</span>
+                        </div>
+                        <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handleImageChange} disabled={isSubmitting} />
+                      </Label>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
