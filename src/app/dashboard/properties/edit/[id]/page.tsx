@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Upload, XCircle, ImageIcon, Loader2 } from "lucide-react"
+import { Upload, XCircle, ImageIcon, Loader2, Star } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
@@ -27,7 +27,7 @@ const amenitiesList = [
   "Totalmente Mobilado", "Varanda", "Jardim", "Segurança 24h"
 ]
 
-const MAX_IMAGES = 8;
+const MAX_IMAGES = 10;
 const MIN_DESCRIPTION_LENGTH = 27;
 
 type ImageUpload = {
@@ -61,6 +61,7 @@ export default function EditPropertyPage() {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
 
   const [imageUploads, setImageUploads] = useState<ImageUpload[]>([])
+  const [coverImageIndex, setCoverImageIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -92,6 +93,7 @@ export default function EditPropertyPage() {
             setPhone(data.contactPhone);
             setStatus(data.status);
             setSelectedAmenities(data.amenities || []);
+            setCoverImageIndex(0); // Cover is always the first image
             
             const existingImages: ImageUpload[] = (data.images || []).map(url => ({
                 previewUrl: url,
@@ -175,6 +177,12 @@ export default function EditPropertyPage() {
       URL.revokeObjectURL(uploadToRemove.previewUrl);
     }
     setImageUploads(prev => prev.filter((_, i) => i !== index));
+    // Adjust cover image index if necessary
+    if (index === coverImageIndex) {
+        setCoverImageIndex(0); // Reset to first image if cover is removed
+    } else if (index < coverImageIndex) {
+        setCoverImageIndex(prev => prev - 1);
+    }
   }
 
   const uploadImagesToStorage = async (): Promise<string[]> => {
@@ -197,7 +205,23 @@ export default function EditPropertyPage() {
     }
 
     const existingUrls = imageUploads.filter(upload => upload.uploadedUrl).map(upload => upload.uploadedUrl!);
-    return [...existingUrls, ...uploadedUrls];
+    
+    // Combine and reorder based on cover image
+    const allImageUrls = imageUploads.map(upload => {
+        if (upload.uploadedUrl) return upload.uploadedUrl;
+        // Find the matching uploaded URL for the new file
+        const newFileIndex = newFilesToUpload.findIndex(f => f.file === upload.file);
+        return uploadedUrls[newFileIndex];
+    });
+
+    if (coverImageIndex < 0 || coverImageIndex >= allImageUrls.length) {
+        return allImageUrls;
+    }
+
+    const coverUrl = allImageUrls[coverImageIndex];
+    const otherUrls = allImageUrls.filter((_, index) => index !== coverImageIndex);
+    
+    return [coverUrl, ...otherUrls];
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -399,21 +423,35 @@ export default function EditPropertyPage() {
 
             <div className="grid gap-3">
               <Label>Imagens do Imóvel ({imageUploads.length}/{MAX_IMAGES})</Label>
+              <p className="text-sm text-muted-foreground">Clique na estrela para escolher a imagem de capa.</p>
               {imageUploads.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
                   {imageUploads.map((upload, index) => (
-                    <div key={index} className="relative aspect-square">
+                    <div key={index} className="relative aspect-square group">
                       <Image src={upload.previewUrl} alt={`Preview ${index}`} layout="fill" className="rounded-md object-cover" />
-                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
                           onClick={() => removeImage(index)}
                           disabled={isSubmitting}
                         >
                           <XCircle className="h-4 w-4" />
+                        </Button>
+                         <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "absolute -top-2 -left-2 h-8 w-8 rounded-full z-10 text-white hover:text-yellow-400",
+                            coverImageIndex === index && "text-yellow-400"
+                          )}
+                          onClick={() => setCoverImageIndex(index)}
+                          disabled={isSubmitting}
+                        >
+                          <Star className={cn("h-6 w-6", coverImageIndex === index && "fill-current")} />
                         </Button>
                       </div>
                     </div>
