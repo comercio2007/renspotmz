@@ -29,6 +29,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { DialogTrigger } from "@/components/ui/dialog";
+import { usePwaInstall } from "@/components/pwa-install-provider";
 
 
 const amenitiesList = [
@@ -57,6 +58,8 @@ const PROPERTIES_PER_PAGE = 6;
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { deferredPrompt, isAppInstalled } = usePwaInstall();
+  const showInstallBanner = !isAppInstalled && !!deferredPrompt;
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -489,7 +492,10 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <div id="fab-share-button-container" className="fixed bottom-6 right-6 z-50">
+        <div id="fab-share-button-container" className={cn(
+            "fixed right-6 z-50 transition-all duration-300",
+            showInstallBanner ? "bottom-24" : "bottom-6"
+        )}>
           <DialogTrigger asChild>
               <Button
                   aria-label="Partilhar o site"
