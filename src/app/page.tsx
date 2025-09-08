@@ -280,7 +280,7 @@ export default function Home() {
               {/* Filtros na lateral */}
               <aside className="md:col-span-1">
                 <div className="p-6 rounded-lg shadow-lg bg-secondary/30 sticky top-24">
-                  <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+                  <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="item-1">
                       <AccordionTrigger>
                         <h3 className="text-xl font-bold flex items-center"><Filter className="mr-2 h-5 w-5"/> Filtros de Pesquisa</h3>
