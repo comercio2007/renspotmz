@@ -9,7 +9,7 @@ import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Property } from "@/lib/placeholder-data";
-import { Search, Filter, X, LayoutGrid, List } from "lucide-react";
+import { Search, Filter, X, LayoutGrid, List, Share2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -28,6 +28,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { DialogTrigger } from "@/components/ui/dialog";
 
 
 const amenitiesList = [
@@ -488,6 +489,16 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <div id="fab-share-button-container" className="fixed bottom-6 right-6 z-50">
+          <DialogTrigger asChild>
+              <Button
+                  aria-label="Partilhar o site"
+                  className="rounded-full h-14 w-14 shadow-lg"
+              >
+                  <Share2 className="h-6 w-6" />
+              </Button>
+          </DialogTrigger>
+        </div>
       </main>
       <Footer />
     </>
