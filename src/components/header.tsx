@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield, Share2 } from 'lucide-react';
+import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield, Share2, HelpCircle } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
@@ -13,36 +13,22 @@ import { useRouter } from 'next/navigation';
 import { DialogTrigger } from './ui/dialog';
 
 
-const NavLink = ({ href, children, onClick }: { href?: string, children: React.React.Node, onClick?: () => void }) => {
+const NavLink = ({ href, children, onClick }: { href: string, children: React.React.Node, onClick?: () => void }) => {
     const pathname = usePathname();
-    const isActive = href && pathname === href;
-
-    const content = (
-         <div
-            onClick={onClick}
-            className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base",
-                isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-                !href && "cursor-pointer"
-            )}
-        >
-            {children}
-        </div>
-    );
-
-    if (href) {
-        return (
-            <SheetClose asChild>
-                <Link href={href}>
-                    {content}
-                </Link>
-            </SheetClose>
-        );
-    }
+    const isActive = pathname === href;
 
     return (
-         <SheetClose asChild>
-            {content}
+        <SheetClose asChild>
+            <Link
+                href={href}
+                onClick={onClick}
+                className={cn(
+                    "flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base",
+                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                )}
+            >
+                {children}
+            </Link>
         </SheetClose>
     );
 };
@@ -69,7 +55,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
                 <Button asChild variant="default" size="sm">
                     <Link href={user ? "/dashboard/properties/new" : "/login"}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -79,11 +65,11 @@ export function Header() {
                 {loading ? (
                     <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
                 ) : !user && (
-                    <div className="items-center gap-2 md:flex">
+                    <div className="items-center gap-2 flex">
                         <Button asChild size="sm" variant="outline">
                             <Link href="/login">Login</Link>
                         </Button>
-                        <Button asChild size="sm" className="hidden md:inline-flex">
+                        <Button asChild size="sm">
                             <Link href="/signup">Inscrever-se</Link>
                         </Button>
                     </div>
@@ -111,6 +97,10 @@ export function Header() {
                             <Info className="h-6 w-6" />
                             Sobre Nós
                         </NavLink>
+                         <NavLink href="/how-to-use">
+                            <HelpCircle className="h-6 w-6" />
+                            Como Usar
+                        </NavLink>
                          {user ? (
                             <>
                                 <NavLink href="/dashboard">
@@ -132,16 +122,12 @@ export function Header() {
                                     Configurações
                                 </NavLink>
                                 <div className="pt-4 mt-4 border-t">
-                                    <DialogTrigger asChild>
-                                         <div className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer">
-                                            <Share2 className="h-6 w-6" />
-                                            Partilhar
-                                        </div>
-                                    </DialogTrigger>
-                                    <NavLink onClick={handleLogout}>
-                                        <LogOut className="h-6 w-6" />
-                                        Sair
-                                    </NavLink>
+                                     <SheetClose asChild>
+                                        <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer">
+                                            <LogOut className="h-6 w-6" />
+                                            Sair
+                                        </button>
+                                     </SheetClose>
                                 </div>
                             </>
                         ) : (
@@ -154,15 +140,7 @@ export function Header() {
                                     <UserPlus className="h-6 w-6" />
                                     Inscrever-se
                                 </NavLink>
-                                <div className="pt-4 mt-4 border-t">
-                                     <DialogTrigger asChild>
-                                         <div className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer">
-                                            <Share2 className="h-6 w-6" />
-                                            Partilhar
-                                        </div>
-                                    </DialogTrigger>
-                                </div>
-                            </>
+                             </>
                         )}
                     </nav>
                 </SheetContent>
