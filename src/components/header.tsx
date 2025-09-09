@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield, Share2, HelpCircle } from 'lucide-react';
+import { Home, PlusCircle, Menu, Building, Info, LogIn, UserPlus, LayoutDashboard, Settings, LogOut, Shield, Share2, HelpCircle, Users } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
@@ -101,6 +101,16 @@ export function Header() {
                             <HelpCircle className="h-6 w-6" />
                             Como Usar
                         </NavLink>
+                        <SheetClose asChild>
+                            <Link
+                                href="https://chat.whatsapp.com/FHOrI6eKyA9Fsi8q8LIKPE?mode=ems_copy_c"
+                                target="_blank"
+                                className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors text-base text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                            >
+                                <Users className="h-6 w-6" />
+                                Grupo WhatsApp
+                            </Link>
+                        </SheetClose>
                          {user ? (
                             <>
                                 <NavLink href="/dashboard">
