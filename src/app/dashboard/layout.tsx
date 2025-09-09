@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard, Shield, Share2 } from "lucide-react"
+import { Home, PlusCircle, Settings, LogOut, Menu, LayoutDashboard, Shield, Share2, HelpCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getAuth, signOut } from "firebase/auth"
 import {
@@ -21,7 +21,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 function DashboardLayoutContent({ children }: { children: React.React.Node }) {
   const router = useRouter()
@@ -140,6 +140,18 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
              <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                tooltip="Grupo de WhatsApp"
+                className="text-lg"
+              >
+                <Link href="https://chat.whatsapp.com/FHOrI6eKyA9Fsi8q8LIKPE?mode=ems_copy_c" target="_blank">
+                  <Users />
+                  <span>Grupo WhatsApp</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={pathname === "/dashboard/settings"}
                 tooltip="Configurações da Conta"
                 className="text-lg"
@@ -150,13 +162,18 @@ function DashboardLayoutContent({ children }: { children: React.React.Node }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-                <DialogTrigger asChild>
-                    <SidebarMenuButton tooltip="Partilhar o Site" className="text-lg">
-                        <Share2 />
-                        <span>Partilhar</span>
-                    </SidebarMenuButton>
-                </DialogTrigger>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === "/how-to-use"}
+                tooltip="Como Usar a Plataforma"
+                className="text-lg"
+              >
+                <Link href="/how-to-use">
+                  <HelpCircle />
+                  <span>Como Usar</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout} tooltip="Sair da Conta" className="text-lg">
