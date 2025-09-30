@@ -58,7 +58,7 @@ export async function createDirectPayment(args: CreateDirectPaymentArgs): Promis
     };
 
     try {
-        const response = await fetch('https://nhonga.net/api/payment/mobile', {
+        const response = await fetch('https://vendorapay.com/api/payment/mobile', {
             method: 'POST',
             headers: {
                 'apiKey': apiKey,
@@ -83,7 +83,7 @@ export async function createDirectPayment(args: CreateDirectPaymentArgs): Promis
         }
 
     } catch (error: any) {
-        console.error("Erro ao comunicar com a API da Nhonga:", error);
+        console.error("Erro ao comunicar com a API da VendoraPay:", error);
         return {
             success: false,
             message: `Não foi possível conectar ao serviço de pagamento: ${error.message}`,
@@ -104,7 +104,7 @@ export async function checkPaymentStatus(transactionId: string): Promise<CheckPa
     }
 
     try {
-        const response = await fetch(`https://nhonga.net/api/payment/mobile/${transactionId}`, {
+        const response = await fetch(`https://vendorapay.com/api/payment/mobile/${transactionId}`, {
             method: 'GET',
             headers: {
                 'apiKey': apiKey,
