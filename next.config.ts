@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -8,7 +9,6 @@ const nextConfig: NextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  /* config options here */
   images: {
     remotePatterns: [
       {
@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+      // Increase timeout to 1 minute for long-running payment processes
+      executionTimeout: 60, 
+    },
   },
 };
 

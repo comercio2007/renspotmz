@@ -10,6 +10,7 @@ import { GlobalLoader } from '@/components/global-loader'
 import { PwaInstallProvider } from '@/components/pwa-install-provider'
 import { Dialog } from '@/components/ui/dialog'
 import { ShareDialog } from '@/components/share-dialog'
+import FacebookPixel from '@/components/facebook-pixel'
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -59,7 +60,7 @@ export default function RootLayout({
               </PwaInstallProvider>
             </LoadingProvider>
         </AuthProvider>
-        
+        <FacebookPixel />
       </body>
     </html>
   )
