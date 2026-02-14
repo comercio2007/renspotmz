@@ -16,7 +16,7 @@ function initializeAdminApp() {
   const databaseURL = process.env.FIREBASE_DATABASE_URL;
 
   if (serviceAccountKey && databaseURL) {
-    console.log("Inicializando Firebase Admin com a chave da conta de serviço (ambiente Vercel).");
+    console.log("Inicializando Firebase Admin com a chave da conta de serviço.");
     try {
       const credentials = JSON.parse(serviceAccountKey);
       return admin.initializeApp({
@@ -45,7 +45,7 @@ function initializeAdminApp() {
 
   // Se nenhuma credencial for encontrada, lança um erro claro.
   throw new Error(
-    'ERRO CRÍTICO: Nenhuma configuração do Firebase Admin encontrada. Defina as variáveis de ambiente FIREBASE_SERVICE_ACCOUNT_KEY e FIREBASE_DATABASE_URL no seu provedor de hosting (Vercel).'
+    'ERRO CRÍTICO: Configuração do Firebase Admin incompleta. As variáveis de ambiente FIREBASE_SERVICE_ACCOUNT_KEY e FIREBASE_DATABASE_URL precisam de ser definidas no seu ambiente de produção.'
   );
 }
 
