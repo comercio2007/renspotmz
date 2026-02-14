@@ -1,5 +1,5 @@
 
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { PT_Sans, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
@@ -27,12 +27,15 @@ export const metadata: Metadata = {
   title: 'RentSpot - Aluguel de Imóveis em Moçambique',
   description: 'Encontre os melhores imóveis para alugar em Moçambique. Apartamentos, casas e vivendas nas melhores localizações.',
   manifest: '/manifest.json',
-  themeColor: '#FA8A7D',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'RentSpot',
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#E07A5F',
 }
 
 export default function RootLayout({
