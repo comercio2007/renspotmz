@@ -43,9 +43,21 @@ function initializeAdminApp() {
     }
   }
 
-  // Se nenhuma credencial for encontrada, lança um erro claro.
+  // Se nenhuma credencial for encontrada, lança um erro claro e específico.
+  if (!serviceAccountKey) {
+     throw new Error(
+      'ERRO CRÍTICO: A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não foi encontrada. Esta variável é necessária para o deploy na Vercel.'
+    );
+  }
+   if (!databaseURL) {
+     throw new Error(
+      'ERRO CRÍTICO: A variável de ambiente FIREBASE_DATABASE_URL não foi encontrada. Esta variável é necessária para o deploy na Vercel.'
+    );
+  }
+
+  // Fallback genérico, embora improvável de ser alcançado com as verificações acima.
   throw new Error(
-    'ERRO CRÍTICO: Configuração do Firebase Admin incompleta. As variáveis de ambiente FIREBASE_SERVICE_ACCOUNT_KEY e FIREBASE_DATABASE_URL precisam de ser definidas no seu ambiente de produção.'
+    'ERRO CRÍTICO: Configuração do Firebase Admin incompleta. Verifique as suas variáveis de ambiente.'
   );
 }
 
